@@ -1,0 +1,10 @@
+{
+  "name": "@omora/p3-stack",
+  "description": "p3-stack (pstack for T3 Code) packaged as an Executor app: skills, playbooks, principles, and per-role model configuration.",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "dependencies": {
+    "apps": "0.0.1-beta.74"
+  }
+}

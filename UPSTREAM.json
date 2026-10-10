@@ -1,0 +1,15 @@
+{
+  "repository": "https://github.com/uzairansaruzi/p3-stack",
+  "commit": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+  "commitDate": "2026-10-05T03:40:27-04:00",
+  "commitSubject": "skills: port pstack to T3 Code",
+  "license": "MIT",
+  "copyright": ["Lauren Tan", "Uzair Ansar (T3 Code adaptation)"],
+  "pathMap": {
+    "skills/": "app/skills/",
+    "agents/p3-agent.md": "app/skills/p3-agent/SKILL.md",
+    "agents/comment-sicko.md": "app/skills/no-comments/references/comment-sicko.md",
+    "LICENSE": "app/LICENSE"
+  },
+  "notShipped": ["AGENTS.md", "README.md", "install.sh", ".gitignore"]
+}
