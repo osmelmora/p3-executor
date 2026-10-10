@@ -13,7 +13,7 @@
   },
   "devDependencies": {
     "@types/node": "24.19.2",
-    "apps": "0.0.1-beta.74",
+    "apps": "0.0.1-beta.76",
     "tsx": "4.23.15",
     "typescript": "7.0.2"
   }
