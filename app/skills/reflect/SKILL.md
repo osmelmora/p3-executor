@@ -32,7 +32,7 @@ Resolve each role through this app's `models.resolve` (p3-mode's Model configura
 | Tooling | `reflect tooling` | `references/tooling-reviewer.md` |
 | Divergent | `reflect judgment, divergent, synthesizer` | `references/divergent-reviewer.md` |
 
-Pass each template verbatim as the brief, substituting the thread id or digest where marked. Collect results on T3's completion wakes (p3-mode's Waiting on delegates); reviewers return findings in their task result.
+Pass each template verbatim as the brief, substituting the thread id or digest where marked. Collect results per p3-mode's Waiting on delegates; reviewers return findings in their task result.
 
 ### 3. Synthesize
 

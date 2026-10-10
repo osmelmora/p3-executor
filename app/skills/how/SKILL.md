@@ -23,7 +23,7 @@ When in doubt, take the simple path.
 
 Decompose the question into 2 to 4 exploration angles, each a distinct slice of the subsystem. Spawn all explorers in a single message, `mode: "async"`, model from the `how explorer` role.
 
-Each explorer's brief is `references/explorer-prompt.md` with its angle filled in. Collect results on T3's completion wakes (p3-mode's Waiting on delegates), and go to Step 3 once every explorer has returned.
+Each explorer's brief is `references/explorer-prompt.md` with its angle filled in. Collect results per p3-mode's Waiting on delegates, and go to Step 3 once every explorer has returned.
 
 ## Step 2b. Direct Explain (simple questions)
 

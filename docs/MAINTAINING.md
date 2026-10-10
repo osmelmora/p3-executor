@@ -26,7 +26,7 @@ Then audit every merged or added file. `pnpm test` fails on the mechanical cases
 | `agents/p3-agent.md` | the **p3-agent** leaf contract, pasted at the top of leaf briefs per p3-mode's Skill delivery |
 | `t3_thread_launch` to give a worker a worktree | the worker creates its own worktree (p3-mode's Subagents section) |
 | "fall back to the closest valid model", "a different model family", "one model per provider" | a configured role, honored exactly; no substitute (p3-mode's Model configuration step 6) |
-| "drain with `task_status`", poll loops | collect results on T3's completion wakes (p3-mode's Waiting on delegates) |
+| "drain with `task_status`", poll loops | collect results per p3-mode's Waiting on delegates |
 | "re-read this playbook from trunk" | p3-mode's Scheduled ticks prompt, which reads from this app |
 | A brief that tells a child to read a skill | a leaf brief pastes the text; a template's header lists the files and skills to paste; only coordinating children read this app |
 | `auto` as a role value | `inherit-parent` |

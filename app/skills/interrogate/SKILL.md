@@ -48,7 +48,7 @@ Read `references/reviewer-prompt.md` and fill in the template with:
 3. The review rubric from `references/rubric.md`
 4. The code-quality lens from `references/code-quality-review.md`
 
-The same filled template goes to all reviewers, so every model applies the code-quality lens. Collect results on T3's completion wakes (p3-mode's Waiting on delegates).
+The same filled template goes to all reviewers, so every model applies the code-quality lens. Collect results per p3-mode's Waiting on delegates.
 
 ## Step 4, Synthesize
 

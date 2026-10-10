@@ -195,13 +195,17 @@ describe("bundled skills", async () => {
       ),
     );
 
-  it("wait for delegates on T3 completion wakes, never by draining or polling task_status", () => {
+  it("route every delegate wait through p3-mode's Waiting on delegates, never polling task_status or launching parallel waits", () => {
     assert.deepEqual(lines(/[Dd]rain(ed)? (?:it |them |results |the candidates |background work )?with `task_status`|`task_status` until|poll(?:ing)? (?:for|until) (?:every |each )?(?:worker|delegate|child|task)/), []);
+    assert.deepEqual(lines(/completion wakes? \(p3-mode|when T3 wakes this thread for it/), [], "callers defer to the rule instead of restating the wake path");
+    assert.deepEqual(lines(/mode: "wait"/), ["p3-mode/SKILL.md:114"], "only the rule itself names mode: \"wait\"");
     const mode = catalog.find((skill) => skill.name === "p3-mode")!.files.find((file) => file.path === "SKILL.md")!.content;
-    assert.match(mode, /When none is left, end the turn: T3 wakes this thread when each async child finishes\./);
-    assert.match(mode, /Never poll in a loop, sleep, or spawn a watcher to wait for a child\./);
-    const waiting = lines(/collect(?:ed)? .*on T3's completion wakes?/i);
-    assert.ok(waiting.length >= 15, `skills point at the wake protocol (${waiting.length})`);
+    for (const branch of ["**Stay in the turn**", "**Fall back to ending the turn**", "**End the turn**"]) assert.ok(mode.includes(branch), `rule has the ${branch} branch`);
+    assert.match(mode, /Call `t3_thread_wait` on each `childThreadId` in turn/);
+    assert.match(mode, /`task_status` is not `result_available`/);
+    assert.match(mode, /Never poll `task_status` in a loop, sleep, or spawn a watcher to wait for a child\./);
+    const callers = lines(/per p3-mode's Waiting on delegates/);
+    assert.ok(callers.length >= 20, `skills point at the wait rule (${callers.length})`);
   });
 
   it("read scheduled-tick playbooks from Executor with a cold-turn prompt, never from the application's trunk", () => {

@@ -34,7 +34,7 @@ Spawn all N candidates in one turn with `delegate_task`, one per runner entry, e
 
 Each rationale names the alternatives the candidate considered and what it rejected.
 
-Collect the candidates on T3's completion wakes (p3-mode's Waiting on delegates). If a candidate fails to produce output, proceed with N-1 and note the dropout in the synthesis record.
+Collect the candidates per p3-mode's Waiting on delegates. If a candidate fails to produce output, proceed with N-1 and note the dropout in the synthesis record.
 
 ## Phase C: Cross-judge
 
