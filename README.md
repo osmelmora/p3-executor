@@ -164,11 +164,13 @@ If `wrapper/p3/SKILL.md` changed, copy it again (Install step 3) and restart the
 
 ## Develop
 
+`mise.toml` pins Node.js and pnpm. Run `mise install` once, then:
+
 ```sh
-npm install
-npm run verify      # typecheck app (Executor's command), typecheck all, tests, bundle audit
-npm test
-npm run check:bundle -- --list
+pnpm install
+pnpm verify         # typecheck app (Executor's command), typecheck all, tests, bundle audit
+pnpm test
+pnpm check:bundle --list
 ```
 
 The tests load `app/index.ts` through `apps/host`'s `createAppHandler`, the same entry point the Executor host uses. They back `ctx.sql` with `node:sqlite` after applying `app/migrations/`, and read skills with the framework's packaged-skill loader. `test/fixtures/live-capabilities.json` is an unmodified `orchestrator_capabilities` result captured on 2026-10-10, with only its thread id replaced. The wrapper is parsed with the framework's `fileSkill`. No test delegates a task or calls a model.

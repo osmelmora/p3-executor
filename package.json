@@ -9,7 +9,7 @@
     "typecheck:app": "tsc --ignoreConfig --noEmit --strict --skipLibCheck --module nodenext --moduleResolution nodenext --target es2022 app/index.ts",
     "test": "node --import tsx --test test/*.test.ts",
     "check:bundle": "node --import tsx scripts/check-bundle.ts",
-    "verify": "npm run typecheck:app && npm run typecheck && npm test && npm run check:bundle"
+    "verify": "pnpm typecheck:app && pnpm typecheck && pnpm test && pnpm check:bundle"
   },
   "devDependencies": {
     "@types/node": "24.19.2",
