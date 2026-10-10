@@ -4,7 +4,6 @@
   "type": "module",
   "description": "Development workspace for the p3-stack Executor app. Only app/ is deployed.",
   "engines": { "node": ">=24.14.0" },
-  "packageManager": "pnpm@12.11.2",
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
     "typecheck:app": "tsc --ignoreConfig --noEmit --strict --skipLibCheck --module nodenext --moduleResolution nodenext --target es2022 app/index.ts",

@@ -164,7 +164,7 @@ If `wrapper/p3/SKILL.md` changed, copy it again (Install step 3) and restart the
 
 ## Develop
 
-The repository pins pnpm in `package.json` `packageManager`. `corepack enable` provides that version.
+`mise.toml` pins Node.js and pnpm. Run `mise install` once, then:
 
 ```sh
 pnpm install
