@@ -63,7 +63,7 @@ describe("deployable bundle", () => {
       upstream: { commit: string };
       files: { path: string; chars: number }[];
     };
-    assert.equal(tested, pinned, "npm install has put the pinned apps in node_modules");
+    assert.equal(tested, pinned, "pnpm install has put the pinned apps in node_modules");
     assert.equal(manifest.appsVersion, tested, "the payload names the framework the tests ran on");
     assert.equal(manifest.upstream.commit, "09909ebb5c0125e27fad3e57d96b81e832696d69");
     assert.equal(manifest.files.length, expected.length);
