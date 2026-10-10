@@ -113,7 +113,7 @@ for (const [label, list] of Object.entries(report)) {
 console.log(
   [
     "",
-    "Next: audit every merged and added file for local-install assumptions (README Maintaining section), then run npm run verify.",
+    "Next: audit every merged and added file for local-install assumptions (README Maintaining section), then run pnpm verify.",
     report.conflicted.length > 0
       ? `Resolve the conflict markers, then record the pin with: node --import tsx scripts/sync-upstream.ts ${to} --record`
       : dryRun

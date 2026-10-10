@@ -1,6 +1,6 @@
 # Maintaining the p3 Executor app
 
-Every change ends with `npm run verify` green and a redeploy (README, Update). A deploy is the user's call.
+Every change ends with `pnpm verify` green and a redeploy (README, Update). A deploy is the user's call.
 
 ## Pull in upstream p3-stack changes
 
@@ -15,7 +15,7 @@ node --import tsx scripts/sync-upstream.ts <commit> --record
 
 `pathMap` in `UPSTREAM.json` routes `agents/p3-agent.md` to the `p3-agent` skill and `agents/comment-sicko.md` to `no-comments/references/comment-sicko.md`. The script reports files upstream removed and upstream files with no mapping; handle those by hand.
 
-Then audit every merged or added file. `npm test` fails on the mechanical cases, and the rest needs reading.
+Then audit every merged or added file. `pnpm test` fails on the mechanical cases, and the rest needs reading.
 
 | Upstream text | Executor version |
 |---|---|
@@ -41,13 +41,13 @@ A new upstream role needs four edits: `roleKinds` in `app/lib/model-config.ts`, 
 Do this when Executor's `framework.release` (or `executor apps framework`) returns a version other than the pin.
 
 1. Set the exact version in both `app/package.json` `dependencies.apps` and the root `package.json` `devDependencies.apps`. The bundle audit fails when they differ.
-2. `npm install`, then read the release's notes in the Executor `app-authoring` skill (`upgrades/<version>.md`, when one exists).
-3. `npm run verify`. The tests drive the app through the new framework's own handler, so changed contracts fail there. `test/bundle.test.ts` also fails when `node_modules` holds a different `apps` than the pin.
+2. `pnpm install`, then read the release's notes in the Executor `app-authoring` skill (`upgrades/<version>.md`, when one exists).
+3. `pnpm verify`. The tests drive the app through the new framework's own handler, so changed contracts fail there. `test/bundle.test.ts` also fails when `node_modules` holds a different `apps` than the pin.
 4. Regenerate the MCP payload (`node --import tsx scripts/deploy-payload.ts`) so no chunk carries the old pin, then redeploy. Stored configuration survives, because a deploy keeps the app's database.
 
 ## Deploy through Executor MCP
 
-Use this path when you have a shell in this repository but not the Executor CLI (README, Install step 2). An agent with Executor connected makes the management calls. Run `npm install` at the repository root first, because the payload script runs through `tsx`.
+Use this path when you have a shell in this repository but not the Executor CLI (README, Install step 2). An agent with Executor connected makes the management calls. Run `pnpm install` at the repository root first, because the payload script runs through `tsx`.
 
 `node --import tsx scripts/deploy-payload.ts` writes `.dev/deploy/chunk-NN.json` (each under 60,000 characters, so it fits one `execute` program) and `manifest.json`. It replaces the whole directory, so run it after every change to `app/`, a framework bump included.
 
@@ -73,7 +73,7 @@ Deploying applies `migrations/0001_model_config.sql` and `migrations/0002_revisi
 
 ## Check before deploying
 
-- `npm run verify` is green.
-- `npm run check:bundle -- --list` shows only `app/` source, skills, migrations, `LICENSE`, and `NOTICE.md`.
+- `pnpm verify` is green.
+- `pnpm check:bundle --list` shows only `app/` source, skills, migrations, `LICENSE`, and `NOTICE.md`.
 - `NOTICE.md` names the pinned upstream commit, and `LICENSE` matches upstream.
 - `wrapper/p3/SKILL.md` still parses as skill `p3` and reads `{app: "p3", name: "p3-mode"}`. Installing it is a copy into `~/.agents/skills/p3/` and `~/.claude/skills/p3/` (README, Install step 3).
