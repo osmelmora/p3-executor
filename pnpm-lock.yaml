@@ -12,8 +12,8 @@ importers:
         specifier: 24.19.2
         version: 24.19.2
       apps:
-        specifier: 0.0.1-beta.74
-        version: 0.0.1-beta.74
+        specifier: 0.0.1-beta.76
+        version: 0.0.1-beta.76
       tsx:
         specifier: 4.23.15
         version: 4.23.15
@@ -305,8 +305,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  apps@0.0.1-beta.74:
-    resolution: {integrity: sha512-DPw0pmarTTGna+lb5FC62Ml/hy+LrBs+ZxmxNlIkGC4GEnVzlirXGLtQYm2PNjbnQmy3+vPZ380Mwpkb3JE02Q==}
+  apps@0.0.1-beta.76:
+    resolution: {integrity: sha512-OU4qo1AiwRLbSoJtOGQsDNNSc0BiaW54AdPiY0hL+CmOiZgEOGe1vBeS47okNADUMVevmkWLmo3/OnrDtdhKww==}
     peerDependencies:
       '@modelcontextprotocol/sdk': ^1.31.0
       graphql: ^16.11.0
@@ -491,7 +491,7 @@ snapshots:
   '@typescript/typescript-win32-x64@7.0.2':
     optional: true
 
-  apps@0.0.1-beta.74:
+  apps@0.0.1-beta.76:
     dependencies:
       '@cloudflare/workers-types': 5.20260729.1
       effect: 4.0.1
