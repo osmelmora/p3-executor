@@ -35,7 +35,7 @@ If a worker drops out, proceed with N-1 and note it.
 
 ## Phase C: Aggregate
 
-Collect each worker's result when T3 wakes this thread for it (p3-mode's Waiting on delegates). Keep every task id, do independent work, then end the turn. Aggregate once every worker is terminal. Drop a result that does not record the SHAs and method its brief names, and respawn that worker once. After a second miss, record a gap. A gap does not count as a pass. For coverage, every required slice needs a result. For a race, apply the selection rule declared up front. Use first pass, rank all, or best-of. Do not paste raw worker dumps.
+Collect each worker's result when T3 wakes this thread for it (p3-mode's Waiting on delegates). Keep every task id and child thread id. Aggregate once every worker is terminal. Drop a result that does not record the SHAs and method its brief names, and respawn that worker once. After a second miss, record a gap. A gap does not count as a pass. For coverage, every required slice needs a result. For a race, apply the selection rule declared up front. Use first pass, rank all, or best-of. Do not paste raw worker dumps.
 
 Keep a compact result table, one-line evidenced issues, and explicit gaps or dropouts.
 

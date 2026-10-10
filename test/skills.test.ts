@@ -198,7 +198,9 @@ describe("bundled skills", async () => {
   it("wait for delegates on T3 completion wakes, never by draining or polling task_status", () => {
     assert.deepEqual(lines(/[Dd]rain(ed)? (?:it |them |results |the candidates |background work )?with `task_status`|`task_status` until|poll(?:ing)? (?:for|until) (?:every |each )?(?:worker|delegate|child|task)/), []);
     const mode = catalog.find((skill) => skill.name === "p3-mode")!.files.find((file) => file.path === "SKILL.md")!.content;
-    assert.match(mode, /When none is left, end the turn: T3 wakes this thread when each async child finishes\./);
+    assert.match(mode, /Call `t3_thread_wait` on each `childThreadId` in turn with `timeoutMs: 600000`, then read each result with one `task_status`\./);
+    assert.match(mode, /a parallel wave never uses them\./);
+    assert.match(mode, /T3 wakes this thread when each async child finishes\./);
     assert.match(mode, /Never poll in a loop, sleep, or spawn a watcher to wait for a child\./);
     const waiting = lines(/collect(?:ed)? .*on T3's completion wakes?/i);
     assert.ok(waiting.length >= 15, `skills point at the wake protocol (${waiting.length})`);
