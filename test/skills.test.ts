@@ -31,7 +31,7 @@ describe("bundled skills", async () => {
 
   it("load through the framework's packaged-skill loader, one per skills/ directory", () => {
     assert.deepEqual([...names].sort(), [...skillDirs].sort());
-    assert.equal(catalog.length, 52);
+    assert.equal(catalog.length, 58);
     for (const required of ["p3-mode", "setup-p3", "p3-agent", "p3-help", "principle-prove-it-works"]) {
       assert.ok(names.has(required), `${required} is bundled`);
     }
@@ -163,7 +163,7 @@ describe("bundled skills", async () => {
     const tools = new Set((reply as { value: { tools: { name: string }[] } }).value.tools.map((tool) => tool.name));
     const referenced = new Set<string>();
     for (const skill of catalog) {
-      for (const file of skill.files) {
+      for (const file of skill.files.filter((file) => file.path.endsWith(".md"))) {
         for (const match of file.content.matchAll(/\bmodels\.([a-z]+)\b/g)) referenced.add(`models.${match[1]}`);
       }
     }

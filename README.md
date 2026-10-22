@@ -2,7 +2,7 @@
 
 Run [p3-stack](https://github.com/uzairansaruzi/p3-stack) in T3 Code from one Executor app instead of installing its skills locally. You install one small wrapper skill. Every p3 skill, playbook, and principle, and your model choice for each p3 role, lives in an app in your Executor organization. An update is one redeploy, and every machine you connect gets the same p3.
 
-p3-stack is Uzair Ansar's T3 Code port of [pstack](https://github.com/cursor/plugins/tree/main/pstack) by Lauren Tan. This repository changes how the skills load and adds tools that store model choices. See [Credit](#credit).
+p3-stack is Uzair Ansar's T3 Code port of [pstack](https://github.com/cursor/plugins/tree/main/pstack) by Lauren Tan. This repository changes how the skills load, adds tools that store model choices, and syncs later pstack changes directly. See [Credit](#credit).
 
 ## How it works
 
@@ -181,13 +181,13 @@ The tests load `app/index.ts` through `apps/host`'s `createAppHandler`, the same
 |---|---|---|
 | `app/` | yes | The deployable app: `index.ts`, `lib/`, `migrations/`, `skills/`, `package.json`, `LICENSE`, `NOTICE.md`. |
 | `wrapper/p3/SKILL.md` | no | The local `p3` wrapper skill. It holds no workflow text. |
-| `UPSTREAM.json` | no | The pinned upstream commit and the path map the sync script uses. |
+| `UPSTREAM.json` | no | The pinned pstack commit, and the path map and name rewrites the sync script uses. |
 | `test/` | no | Behavioral tests that run the real app module through the `apps` framework handler on SQLite. |
 | `scripts/` | no | Bundle audit, deploy payload, upstream sync, and the child-brief walkthrough (`child-briefs.ts`). |
 | `docs/` | no | Maintenance steps and the model-configuration reference. |
 | `.dev/` | no | Ignored scratch, such as the upstream checkout and deploy chunks. |
 
-Pins: upstream `uzairansaruzi/p3-stack@09909ebb5c0125e27fad3e57d96b81e832696d69`, framework `apps@0.0.1-beta.74`.
+Pins: upstream `cursor/plugins@9b93e81fb2921b9263d9463c15bafeabfe3903aa` (`pstack/`), framework `apps@0.0.1-beta.76`.
 
 ## Credit
 

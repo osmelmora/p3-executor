@@ -1,6 +1,8 @@
 /**
  * Split app/ into `{ path, content }` chunks that each fit one Executor `execute` program
  * (65,536 characters of source), plus a manifest to verify the deployed source against.
+ * A file too large for one chunk is split into parts; every part after the first has `append: true`
+ * and extends the content already saved for that path.
  * Usage: node --import tsx scripts/deploy-payload.ts [outDir] [maxChars]
  */
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -19,20 +21,32 @@ if (violations.length > 0) {
 
 const core = (path: string) => !path.startsWith("skills/");
 const ordered = [...files.filter((file) => core(file.path)), ...files.filter((file) => !core(file.path))];
-const chunks: { path: string; content: string }[][] = [];
-let current: { path: string; content: string }[] = [];
+type Entry = { path: string; content: string; append?: true };
+const chunks: Entry[][] = [];
+let current: Entry[] = [];
 let size = 2;
-for (const file of ordered) {
-  const entry = { path: file.path, content: file.content };
-  const cost = JSON.stringify(entry).length + 1;
-  if (cost + 2 > maxChars) throw new Error(`${file.path} alone exceeds ${maxChars} characters; raise maxChars or split the file.`);
-  if (size + cost > maxChars && current.length > 0) {
+const cost = (entry: Entry) => JSON.stringify(entry).length + 1;
+const parts = (path: string, content: string): Entry[] => {
+  if (cost({ path, content }) + 2 <= maxChars) return [{ path, content }];
+  const out: Entry[] = [];
+  for (let at = 0; at < content.length; ) {
+    let length = Math.min(content.length - at, Math.floor(maxChars / 2));
+    while (cost({ path, content: content.slice(at, at + length), append: true }) + 2 > maxChars) length = Math.floor(length * 0.9);
+    const part: Entry = { path, content: content.slice(at, at + length) };
+    if (at > 0) part.append = true;
+    out.push(part);
+    at += length;
+  }
+  return out;
+};
+for (const entry of ordered.flatMap((file) => parts(file.path, file.content))) {
+  if (size + cost(entry) > maxChars && current.length > 0) {
     chunks.push(current);
     current = [];
     size = 2;
   }
   current.push(entry);
-  size += cost;
+  size += cost(entry);
 }
 if (current.length > 0) chunks.push(current);
 

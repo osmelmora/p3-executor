@@ -1,6 +1,7 @@
 /**
- * Port upstream p3-stack changes into the adapted copy with per-file three-way merges:
+ * Port upstream pstack changes into the adapted copy with per-file three-way merges:
  * base = upstream at the pinned commit, ours = app/, theirs = upstream at the target commit.
+ * Both upstream sides get UPSTREAM.json's `rewrites` (poteto -> p3 names) before merging.
  *
  *   node --import tsx scripts/sync-upstream.ts <commit-or-ref> [--dry-run]
  *   node --import tsx scripts/sync-upstream.ts <commit> --record   # pin after resolving conflicts
@@ -16,14 +17,17 @@ type Upstream = {
   commit: string;
   commitDate: string;
   commitSubject: string;
+  /** Directory of the upstream repository that holds the plugin, with a trailing slash. */
+  root: string;
   pathMap: Record<string, string>;
+  rewrites: [string, string][];
   notShipped: string[];
   [key: string]: unknown;
 };
 
 const pinFile = join(root, "UPSTREAM.json");
 const pin = JSON.parse(readFileSync(pinFile, "utf8")) as Upstream;
-const checkout = join(root, ".dev", "upstream", "p3-stack");
+const checkout = join(root, ".dev", "upstream", pin.repository.split("/").pop()!.replace(/\.git$/, ""));
 const [target, ...flags] = process.argv.slice(2);
 if (target === undefined) {
   console.error("usage: sync-upstream.ts <commit-or-ref> [--dry-run | --record]");
@@ -35,7 +39,7 @@ const recordOnly = flags.includes("--record");
 const git = (...args: string[]) => execFileSync("git", ["-C", checkout, ...args], { encoding: "utf8" }).trim();
 if (!existsSync(join(checkout, ".git"))) {
   mkdirSync(dirname(checkout), { recursive: true });
-  execFileSync("git", ["clone", "--quiet", pin.repository, checkout]);
+  execFileSync("git", ["clone", "--quiet", "--filter=blob:none", "--no-checkout", pin.repository, checkout]);
 }
 git("fetch", "--quiet", "origin");
 const to = git("rev-parse", `${target}^{commit}`);
@@ -59,11 +63,17 @@ if (to === pin.commit) {
   process.exit(0);
 }
 
+const rewrite = (text: string) => pin.rewrites.reduce((out, [from, into]) => out.replaceAll(from, into), text);
 const show = (commit: string, path: string): string | undefined => {
-  const result = spawnSync("git", ["-C", checkout, "show", `${commit}:${path}`], { encoding: "utf8" });
-  return result.status === 0 ? result.stdout : undefined;
+  const result = spawnSync("git", ["-C", checkout, "show", `${commit}:${pin.root}${path}`], { encoding: "utf8" });
+  return result.status === 0 ? rewrite(result.stdout) : undefined;
 };
-const listed = (commit: string) => git("ls-tree", "-r", "--name-only", commit).split("\n").filter(Boolean);
+const listed = (commit: string) =>
+  git("ls-tree", "-r", "--name-only", commit, "--", pin.root)
+    .split("\n")
+    .filter(Boolean)
+    .map((path) => path.slice(pin.root.length));
+const notShipped = (path: string) => pin.notShipped.some((entry) => (entry.endsWith("/") ? path.startsWith(entry) : path === entry));
 const mapPath = (path: string): string | undefined => {
   for (const [from, into] of Object.entries(pin.pathMap)) {
     if (from.endsWith("/") ? path.startsWith(from) : path === from) {
@@ -80,10 +90,10 @@ const report = { merged: [] as string[], conflicted: [] as string[], added: [] a
 for (const path of paths) {
   const base = show(pin.commit, path);
   const theirs = show(to, path);
-  if (base === theirs) continue;
+  if (base === theirs || notShipped(path)) continue;
   const ours = mapPath(path);
   if (ours === undefined) {
-    if (!pin.notShipped.includes(path)) report.unmapped.push(path);
+    report.unmapped.push(path);
     continue;
   }
   if (theirs === undefined) {
