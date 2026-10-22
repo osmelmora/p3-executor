@@ -1,9 +1,9 @@
 # Notice
 
-This app bundles an adapted copy of p3-stack.
+This app bundles an adapted copy of pstack, by way of p3-stack.
 
-- Source: https://github.com/uzairansaruzi/p3-stack at commit `09909ebb5c0125e27fad3e57d96b81e832696d69` (2026-10-05, "skills: port pstack to T3 Code").
-- p3-stack adapts [pstack](https://github.com/cursor/plugins/tree/main/pstack) by Lauren Tan ([poteto](https://x.com/poteto)). The skills, principles, and language are hers. The T3 Code rewiring is Uzair Ansar's.
+- Source: [pstack](https://github.com/cursor/plugins/tree/main/pstack) by Lauren Tan ([poteto](https://x.com/poteto)) at cursor/plugins commit `9b93e81fb2921b9263d9463c15bafeabfe3903aa` (2026-10-22). The skills, principles, and language are hers.
+- The T3 Code rewiring is Uzair Ansar's [p3-stack](https://github.com/uzairansaruzi/p3-stack) at commit `09909ebb5c0125e27fad3e57d96b81e832696d69` (2026-10-05, "skills: port pstack to T3 Code"), which ported pstack `4e5b1cf2cc`. Later pstack changes are merged here directly.
 - License: MIT. The upstream license is reproduced verbatim in `LICENSE`, and it covers the adapted skills in `skills/`.
 
 ## Changes in this copy
@@ -16,4 +16,6 @@ This app bundles an adapted copy of p3-stack.
 - Scheduled audit ticks read their playbook from this app with a cold-turn prompt instead of from the project's trunk.
 - Concurrent writers create their own git worktree. `t3_thread_launch` is reserved for top-level threads the user asks for.
 - `p3-help` setup guidance, `show-me-your-work` helper use, `reflect` skill edits, and the multi-phase plan's skill reads are adapted to the Executor app.
+- pstack's per-spawn tuning of reasoning level and fast or standard speed is left out. A role runs on exactly the target the user configured.
+- pstack's `poteto-mode/scripts/` (PR watcher, plan checker, orchestration store, worktree audit) are not shipped; T3 tools replace them. `statechart/scripts/` ships without its tests, and the agent copies it out of the app before running it.
 - Frontmatter is otherwise unchanged. `disable-model-invocation` is inert metadata in Executor.

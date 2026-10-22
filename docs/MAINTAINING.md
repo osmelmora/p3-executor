@@ -2,9 +2,9 @@
 
 Every change ends with `pnpm verify` green and a redeploy (README, Update). A deploy is the user's call.
 
-## Pull in upstream p3-stack changes
+## Pull in upstream pstack changes
 
-The adapted skills are a fork of upstream at the commit in `UPSTREAM.json`. The sync script merges each changed upstream file three ways: the pinned commit is the base, `app/` is ours, the new commit is theirs.
+The adapted skills are a fork of [pstack](https://github.com/cursor/plugins/tree/main/pstack) at the commit in `UPSTREAM.json`. They started as Uzair Ansar's [p3-stack](https://github.com/uzairansaruzi/p3-stack) port, which stopped at pstack `4e5b1cf2cc`, so this repository now syncs from pstack directly. The sync script merges each changed upstream file three ways: the pinned commit is the base, `app/` is ours, the new commit is theirs. Both upstream sides get the `rewrites` in `UPSTREAM.json` first (`poteto-mode` to `p3-mode` and the other p3 names), so a hunk conflicts only where upstream changed a line this app adapted.
 
 ```sh
 node --import tsx scripts/sync-upstream.ts origin/main --dry-run   # list what would merge, conflict, or appear
@@ -13,7 +13,7 @@ node --import tsx scripts/sync-upstream.ts origin/main             # merge in pl
 node --import tsx scripts/sync-upstream.ts <commit> --record
 ```
 
-`pathMap` in `UPSTREAM.json` routes `agents/p3-agent.md` to the `p3-agent` skill and `agents/comment-sicko.md` to `no-comments/references/comment-sicko.md`. The script reports files upstream removed and upstream files with no mapping; handle those by hand.
+Paths are relative to `root` (`pstack/`). `pathMap` routes `skills/poteto-mode/` to `p3-mode`, `skills/poteto-help/` to `p3-help`, `skills/setup-pstack/` to `setup-p3`, `agents/poteto-agent.md` to the `p3-agent` skill, and `agents/comment-sicko.md` to `no-comments/references/comment-sicko.md`. `notShipped` skips upstream's plugin files, guide, `poteto-mode/scripts/` (replaced by T3 tools), and `statechart/scripts/test/`. The script reports files upstream removed and upstream files with no mapping; handle those by hand.
 
 Then audit every merged or added file. `pnpm test` fails on the mechanical cases, and the rest needs reading.
 
@@ -30,6 +30,7 @@ Then audit every merged or added file. `pnpm test` fails on the mechanical cases
 | "re-read this playbook from trunk" | p3-mode's Scheduled ticks prompt, which reads from this app |
 | A brief that tells a child to read a skill | a leaf brief pastes the text; a template's header lists the files and skills to paste; only coordinating children read this app |
 | `auto` as a role value | `inherit-parent` |
+| "pick each subagent's reasoning level and fast or standard speed" | dropped; a resolved target's options are never changed (p3-mode's Model configuration step 4) |
 | A bundled script the agent runs | Executor returns it as text; save it outside the repository first |
 
 Run `node --import tsx scripts/child-briefs.ts` after every merge. A brief that names something it neither pastes nor leaves to the parent, or asks the child to read what it lacks, fails `test/child-briefs.test.ts`. A new upstream skill whose steps call `delegate_task` joins the parent-owned list pinned in that test, and leaf briefs never paste it. A new template adds its brief to `walkthroughBriefs` in the script.
@@ -53,7 +54,7 @@ Use this path when you have a shell in this repository but not the Executor CLI 
 
 1. In `execute`, discover the management app with `tools.search`, call `context.get({})` for the organization, and check that `framework.release` returns the pinned `apps` version, the same one as `appsVersion` in `manifest.json`. A different version means bumping it first (Upgrade the `apps` framework).
 2. Create the app from chunk 1: `appManagement.create({ path: { organization }, body: { name: "p3", files: <chunk-01> } })`. Chunk 1 holds `index.ts`, `package.json`, `lib/`, and `migrations/`.
-3. For each later chunk, one `execute`: read `appManagement.source`, then `appManagement.commit` with `expected: source.revision.commit` and the source files plus the chunk. A commit replaces the whole file list, so always include the files already saved.
+3. For each later chunk, one `execute`: read `appManagement.source`, then `appManagement.commit` with `expected: source.revision.commit` and the source files plus the chunk. A commit replaces the whole file list, so always include the files already saved. An entry with `append: true` is a later part of a file too large for one chunk (`statechart/scripts/tlc-to-chart.mjs`): append its `content` to the saved file at that path instead of adding a file.
 4. Read the source once more and compare it with `manifest.json`: every path present, each `content.length` equal to its `chars`. Then `appManagement.deploy({ path: { organization, app }, body: { commit } })`.
 
 Deploying applies `migrations/0001_model_config.sql` and `migrations/0002_revision_clock.sql` in order.
@@ -61,7 +62,7 @@ Deploying applies `migrations/0001_model_config.sql` and `migrations/0002_revisi
 **Check the deployment** in a new `execute`, with no delegation:
 
 - `tools.p3.models.read({})` returns `configured: false` and 17 roles on a new app.
-- `skills({ app: "p3" })` lists 52 skills.
+- `skills({ app: "p3" })` lists 58 skills.
 - `skills({ app: "p3", name: "p3-mode" })` reads the router.
 
 ## Change stored configuration

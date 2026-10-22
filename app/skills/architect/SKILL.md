@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Architect
 
-Design before implementing. Sketch types, function signatures, class shapes, and module boundaries with `not implemented` bodies and pseudocode. Synthesize across multiple model perspectives, then fill in code against the chosen sketch. If implementation proves the sketch wrong, throw it out and redesign.
+Sketch types, function signatures, class shapes, and module boundaries with `not implemented` bodies and pseudocode. Synthesize across multiple model perspectives, then fill in code against the chosen sketch.
 
 ## Start
 
@@ -20,17 +20,15 @@ Open a todolist with one entry per phase before starting.
 
 ## Phase A: Ground the problem
 
-Build a real mental model of every system the new code touches. Run the **how** skill over the relevant subsystems.
-
-Naming a file isn't grounding. Produce the traced model `how` prescribes. If the design redefines ownership or layering, also run the **why** skill on the existing shape so the rationale becomes a constraint, not a guess.
+Build a real mental model of every system the new code touches. Run the **how** skill over the relevant subsystems. Naming a file isn't grounding. Produce the architectural explanation `how` prescribes. If the design redefines ownership or layering, also run the **why** skill on the existing shape so the rationale becomes a constraint, not a guess.
 
 Skip Phase A only when the work is genuinely greenfield with no surrounding system to integrate.
 
 ## Phase B: Sketch
 
-Run the **arena** skill with the design-sketch task and the Phase A grounding artifacts. Send one `delegate_task` per runner, `mode: "async"`, and collect results per p3-mode's Waiting on delegates. Every brief stands alone: child agents get only the brief, never this thread's context. Each brief is a closed template brief (p3-mode's Skill delivery): the brief text of `references/runner-prompt.md` with the task, the grounding artifacts, and the runner's own working directory and output path filled in, then `references/rationale-template.md` and the principle skills the runner prompt's header lists, pasted in full. Runners read nothing from Executor and run no workflow. Each candidate produces a design package shaped per `references/rationale-template.md`. A runner's `P3_NEEDS` line is a gap in your grounding: close it before synthesis, or carry it into the rationale's open questions.
+Run the **arena** skill with the design-sketch task and the Phase A grounding artifacts. Send one `delegate_task` per runner, `mode: "async"`, and collect results per p3-mode's Waiting on delegates. Every brief stands alone, because child agents get only the brief, never this thread's context. Each brief is a closed template brief (p3-mode's Skill delivery). It holds the brief text of `references/runner-prompt.md` with the task, the grounding artifacts, and the runner's own working directory and output path filled in, then `references/rationale-template.md` and the principle skills the runner prompt's header lists, pasted in full. Runners read nothing from Executor and run no workflow. A runner's `P3_NEEDS` line is a gap in your grounding. Close it before synthesis, or carry it into the rationale's open questions.
 
-Take the runners from the `architect runners` role, in place of the `arena runners` role. Resolve it through this app's `models.resolve` (p3-mode's Model configuration); never hardcode a model. If the role is unset, run **setup-p3**. Inherited and rejected entries follow the runner rules in the **arena** skill's Phase A.
+Take the runners from the `architect runners` role, in place of the `arena runners` role, resolved through `models.resolve` (p3-mode's Model configuration). Never hardcode a model. If the role is unset, run **setup-p3**. Inherited and rejected entries follow the runner rules in the **arena** skill's Phase A.
 
 Design it twice. Require at least two structurally distinct candidates before synthesis, even when the first looks sufficient. This is the **exhaust-the-design-space** principle skill made concrete. Whole-shape alternatives, not point fixes inside one shape.
 
@@ -38,7 +36,7 @@ Screen every candidate against [`references/design-red-flags.md`](references/des
 
 Compare viable candidates on interface depth. Prefer the design that hides more complexity behind a smaller, simpler public surface. A rich interface can keep call chains short by concentrating capability instead of scattering it across layers.
 
-Arena returns one synthesized design package. The synthesis decision populates the rationale's "Synthesis decision" section.
+Arena returns one synthesized design package. Its synthesis decision fills the rationale's "Synthesis decision" section.
 
 ## Phase C: Agree (opt-in)
 
@@ -52,9 +50,7 @@ If the human pushes back on the shape (in a checkpoint or after the fact), treat
 
 ## Phase D: Implement against the sketch
 
-Replace `not implemented` bodies with code, pseudocode with logic. The synthesized sketch is the contract.
-
-Deviations from the sketch are signal worth surfacing, not friction to absorb silently. If a function needs a parameter the sketch didn't anticipate, ask whether the sketch was wrong, the requirement was missed, or the implementation is overreaching.
+Replace `not implemented` bodies with code, pseudocode with logic. The synthesized sketch is the contract. Deviations from it are signal to surface, not friction to absorb silently. If a function needs a parameter the sketch didn't anticipate, ask whether the sketch was wrong, the requirement was missed, or the implementation is overreaching.
 
 ## Phase E: Scrap when the architecture is wrong
 

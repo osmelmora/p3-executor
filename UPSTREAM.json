@@ -1,15 +1,59 @@
 {
-  "repository": "https://github.com/uzairansaruzi/p3-stack",
-  "commit": "09909ebb5c0125e27fad3e57d96b81e832696d69",
-  "commitDate": "2026-10-05T03:40:27-04:00",
-  "commitSubject": "skills: port pstack to T3 Code",
+  "repository": "https://github.com/cursor/plugins",
+  "root": "pstack/",
+  "commit": "9b93e81fb2921b9263d9463c15bafeabfe3903aa",
+  "commitDate": "2026-10-22T15:11:22-04:00",
+  "commitSubject": "Merge pull request #778 from rosskrasner/cursor/stable-plugin",
   "license": "MIT",
-  "copyright": ["Lauren Tan", "Uzair Ansar (T3 Code adaptation)"],
+  "copyright": [
+    "Lauren Tan",
+    "Uzair Ansar (T3 Code adaptation)"
+  ],
+  "adaptedFrom": {
+    "repository": "https://github.com/uzairansaruzi/p3-stack",
+    "commit": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+    "note": "p3-stack's T3 Code port of pstack at the commit above; this app has synced from pstack directly since."
+  },
   "pathMap": {
+    "skills/poteto-mode/": "app/skills/p3-mode/",
+    "skills/poteto-help/": "app/skills/p3-help/",
+    "skills/setup-pstack/": "app/skills/setup-p3/",
     "skills/": "app/skills/",
-    "agents/p3-agent.md": "app/skills/p3-agent/SKILL.md",
+    "agents/poteto-agent.md": "app/skills/p3-agent/SKILL.md",
     "agents/comment-sicko.md": "app/skills/no-comments/references/comment-sicko.md",
     "LICENSE": "app/LICENSE"
   },
-  "notShipped": ["AGENTS.md", "README.md", "install.sh", ".gitignore"]
+  "rewrites": [
+    [
+      "poteto-mode",
+      "p3-mode"
+    ],
+    [
+      "poteto-agent",
+      "p3-agent"
+    ],
+    [
+      "poteto-help",
+      "p3-help"
+    ],
+    [
+      "setup-pstack",
+      "setup-p3"
+    ],
+    [
+      "pstack",
+      "p3-stack"
+    ]
+  ],
+  "notShipped": [
+    "skills/poteto-mode/scripts/",
+    ".cursor-plugin/",
+    "assets/",
+    "automations/",
+    "docs/",
+    "plugin.json",
+    "README.md",
+    ".gitignore",
+    "skills/statechart/scripts/test/"
+  ]
 }

@@ -52,7 +52,14 @@ describe("deployable bundle", () => {
       ["index.ts", "package.json"],
       "the first chunk can create the app on its own",
     );
-    const shipped = chunks.flatMap((chunk) => JSON.parse(chunk) as { path: string; content: string }[]);
+    const shipped: { path: string; content: string }[] = [];
+    for (const entry of chunks.flatMap((chunk) => JSON.parse(chunk) as { path: string; content: string; append?: true })) {
+      const last = shipped.at(-1);
+      if (entry.append) {
+        assert.equal(last?.path, entry.path, "a continuation part follows the part before it");
+        last!.content += entry.content;
+      } else shipped.push({ path: entry.path, content: entry.content });
+    }
     const expected = bundleFiles().map(({ path, content }) => ({ path, content }));
     assert.deepEqual(
       [...shipped].sort((a, b) => a.path.localeCompare(b.path)),
@@ -65,7 +72,7 @@ describe("deployable bundle", () => {
     };
     assert.equal(tested, pinned, "pnpm install has put the pinned apps in node_modules");
     assert.equal(manifest.appsVersion, tested, "the payload names the framework the tests ran on");
-    assert.equal(manifest.upstream.commit, "09909ebb5c0125e27fad3e57d96b81e832696d69");
+    assert.equal(manifest.upstream.commit, "9b93e81fb2921b9263d9463c15bafeabfe3903aa");
     assert.equal(manifest.files.length, expected.length);
   });
 });

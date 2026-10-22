@@ -34,7 +34,7 @@ export const bundleFiles = (): BundleFile[] =>
     .sort((a, b) => a.path.localeCompare(b.path));
 
 const allowedTop = new Set(["index.ts", "package.json", "LICENSE", "NOTICE.md", "lib", "migrations", "skills"]);
-const allowedExtension = /\.(ts|json|sql|md|tsv|sh)$/;
+const allowedExtension = /\.(ts|json|sql|md|tsv|sh|mjs|tla|cfg|mmd)$/;
 const secretPatterns: readonly [string, RegExp][] = [
   ["private key", /-----BEGIN [A-Z ]*PRIVATE KEY-----/],
   ["GitHub token", /\bgh[pousr]_[A-Za-z0-9]{30,}\b/],
