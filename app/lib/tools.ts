@@ -45,10 +45,18 @@ export const Catalog = object({
       canRunChildTask: boolean(),
       canRunCrossProviderChildTask: boolean().optional(),
       constraints: array(string()).optional(),
+      omittedModels: number().optional(),
       models: array(
         object({
           id: id(),
-          options: array(object({ id: id(), type: id(), options: array(object({ id: id() })).optional() })).optional(),
+          options: array(
+            object({
+              id: id(),
+              type: id().optional(),
+              options: array(object({ id: id() })).optional(),
+              values: array(json()).optional(),
+            }),
+          ).optional(),
         }),
       ),
     }),
