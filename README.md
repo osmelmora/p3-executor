@@ -187,7 +187,7 @@ The tests load `app/index.ts` through `apps/host`'s `createAppHandler`, the same
 | `docs/` | no | Maintenance steps and the model-configuration reference. |
 | `.dev/` | no | Ignored scratch, such as the upstream checkout and deploy chunks. |
 
-Pins: upstream `cursor/plugins@9b93e81fb2921b9263d9463c15bafeabfe3903aa` (`pstack/`), framework `apps@0.0.1-beta.76`.
+Pins: upstream `cursor/plugins@9b93e81fb2921b9263d9463c15bafeabfe3903aa` (`pstack/`), framework `apps@0.0.1-beta.122`.
 
 ## Credit
 

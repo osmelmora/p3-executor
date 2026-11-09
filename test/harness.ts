@@ -76,7 +76,7 @@ export const host = (db: DatabaseSync = migratedDatabase()) => {
         body: JSON.stringify(body),
         headers: { "content-type": "application/json" },
       }),
-      { ...hostContext({}), files, storage: storageOver(db) },
+      { ...hostContext({ app: {} }), files, storage: storageOver(db) },
     );
     return (await response.json()) as HostReply;
   };
