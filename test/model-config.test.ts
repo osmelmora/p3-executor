@@ -241,6 +241,118 @@ describe("the catalog orchestrator_capabilities returned on 2026-10-10, unmodifi
   });
 });
 
+describe("the compact catalog orchestrator_capabilities returned on 2026-11-09, unmodified", () => {
+  const captured = () =>
+    JSON.parse(readFileSync(new URL("./fixtures/compact-capabilities.json", import.meta.url), "utf8")) as Json;
+  const fable51 = { use: "model", providerInstanceId: "claudeAgent", model: "claude-fable-5-1", options: { effort: "xhigh" } };
+  const claudeOf = (catalog: Json): Json =>
+    catalog["providers"].find((provider: Json) => provider["providerInstanceId"] === "claudeAgent");
+  const withFable51Listed = () => {
+    const catalog = captured();
+    claudeOf(catalog)["models"].push({
+      id: "claude-fable-5-1",
+      options: [{ id: "effort", values: ["low", "medium", "high", "xhigh", "max", "ultrathink"], default: "medium" }],
+    });
+    return catalog;
+  };
+  const problemCodes = (error: Json): string[] =>
+    [...String(error["message"]).matchAll(/\[([a-z-]+)\]/g)].map((match) => match[1]!);
+
+  it("saves and resolves select values and booleans", async () => {
+    const app = host();
+    const catalog = captured();
+    ok(
+      await app.call("models.write", "mutation", {
+        catalog,
+        expectedRevision: 0,
+        set: [{ role: "interrogate reviewers", entries: [sol({ reasoningEffort: "ultra" }), opus({ effort: "xhigh", fastMode: false })] }],
+      }),
+    );
+    const resolution = ok(await app.call("models.resolve", "query", { catalog, roles: ["interrogate reviewers"] }));
+    assert.equal(resolution["ok"], true);
+    assert.deepEqual(roleOf(resolution, "interrogate reviewers")["delegates"].map((d: Json) => d["target"]), [
+      { providerInstanceId: "codex", model: "gpt-6.1-sol", options: { reasoningEffort: "ultra" } },
+      { providerInstanceId: "claudeAgent", model: "claude-opus-5-5", options: { effort: "xhigh", fastMode: false } },
+    ]);
+  });
+
+  it("rejects disabled providers and values a model does not offer", async () => {
+    const error = failure(
+      await host().call("models.write", "mutation", {
+        catalog: captured(),
+        set: [
+          { role: "bug-fix", entries: [{ use: "model", providerInstanceId: "grok", model: "grok-build" }] },
+          { role: "perf-issue", entries: [{ use: "model", providerInstanceId: "codex", model: "gpt-6-luna", options: { reasoningEffort: "ultra" } }] },
+          { role: "hillclimb", entries: [{ use: "model", providerInstanceId: "claudeAgent", model: "claude-sonnet-5-5", options: { fastMode: true } }] },
+          { role: "swarm workers", entries: [opus({ fastMode: "yes" })] },
+        ],
+      }),
+    );
+    assert.deepEqual(problemCodes(error), [
+      "provider-cannot-run-child-task",
+      "option-value-invalid",
+      "option-unsupported",
+      "option-value-invalid",
+    ]);
+  });
+
+  it("rejects an option that declares neither form", async () => {
+    const catalog = captured();
+    claudeOf(catalog)["models"][0]["options"].push({ id: "mystery" });
+    const error = failure(await host().call("models.resolve", "query", { catalog }));
+    assert.deepEqual(problemCodes(error), ["catalog-invalid"]);
+  });
+
+  it("resolves a saved model the short list omitted, without reporting it stale", async () => {
+    const app = host();
+    ok(
+      await app.call("models.write", "mutation", {
+        catalog: withFable51Listed(),
+        expectedRevision: 0,
+        set: [{ role: "hardest tasks", entries: [fable51] }],
+      }),
+    );
+    const resolution = ok(await app.call("models.resolve", "query", { catalog: captured(), roles: ["hardest tasks"] }));
+    assert.equal(resolution["ok"], true);
+    assert.deepEqual(roleOf(resolution, "hardest tasks")["delegates"][0]["target"], {
+      providerInstanceId: "claudeAgent",
+      model: "claude-fable-5-1",
+      options: { effort: "xhigh" },
+    });
+    const written = ok(
+      await app.call("models.write", "mutation", { catalog: captured(), set: [{ role: "bug-fix", entries: [opus()] }] }),
+    );
+    assert.deepEqual(written["staleInScope"], []);
+  });
+
+  it("marks a saved model invalid when the provider's list is complete", async () => {
+    const app = host();
+    ok(
+      await app.call("models.write", "mutation", {
+        catalog: withFable51Listed(),
+        expectedRevision: 0,
+        set: [{ role: "hardest tasks", entries: [fable51] }],
+      }),
+    );
+    const catalog = captured();
+    delete claudeOf(catalog)["omittedModels"];
+    const resolution = ok(await app.call("models.resolve", "query", { catalog, roles: ["hardest tasks"] }));
+    assert.equal(resolution["ok"], false);
+    assert.equal(roleOf(resolution, "hardest tasks")["problems"][0]["code"], "model-missing");
+  });
+
+  it("rejects writing an omitted model and says how to list it", async () => {
+    const error = failure(
+      await host().call("models.write", "mutation", {
+        catalog: captured(),
+        set: [{ role: "hardest tasks", entries: [fable51] }],
+      }),
+    );
+    assert.deepEqual(problemCodes(error), ["model-missing"]);
+    assert.match(String(error["message"]), /omits 10 models.*search/);
+  });
+});
+
 describe("partial writes", () => {
   it("patches named roles, unsets, resets, and deletes an emptied project scope", async () => {
     const { write, read } = setup();
