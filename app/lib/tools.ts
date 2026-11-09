@@ -29,7 +29,7 @@ import {
 } from "./model-config.js";
 import { readScopes, type StoredScope, updateScope } from "./store.js";
 
-export const requirements = { accounts: {} };
+export const requirements = {};
 type Reader = Pick<QueryContext<typeof requirements>, "sql">;
 type Writer = Pick<MutationContext<typeof requirements>, "sql">;
 
