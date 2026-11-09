@@ -154,18 +154,31 @@ export interface CatalogInput {
     readonly canRunChildTask: boolean;
     readonly canRunCrossProviderChildTask?: boolean | undefined;
     readonly constraints?: readonly string[] | undefined;
+    readonly omittedModels?: number | undefined;
     readonly models: readonly {
       readonly id: string;
-      readonly options?:
-        | readonly {
-            readonly id: string;
-            readonly type: string;
-            readonly options?: readonly { readonly id: string }[] | undefined;
-          }[]
-        | undefined;
+      readonly options?: readonly CatalogOptionInput[] | undefined;
     }[];
   }[];
 }
+
+/** T3 sends either the full form (`type` and `options`) or the compact form (`values`). */
+interface CatalogOptionInput {
+  readonly id: string;
+  readonly type?: string | undefined;
+  readonly options?: readonly { readonly id: string }[] | undefined;
+  readonly values?: readonly unknown[] | undefined;
+}
+
+const parseCatalogOption = (option: CatalogOptionInput): CatalogOption | undefined => {
+  if (option.values !== undefined) {
+    return typeof option.values[0] === "boolean"
+      ? { type: "boolean", values: [] }
+      : { type: "select", values: option.values.filter((value) => typeof value === "string") };
+  }
+  if (option.type === undefined) return undefined;
+  return { type: option.type, values: (option.options ?? []).map((value) => value.id) };
+};
 
 interface CatalogOption {
   readonly type: string;
@@ -178,6 +191,7 @@ interface CatalogProvider {
   readonly canRunChildTask: boolean;
   readonly canRunCrossProviderChildTask?: boolean | undefined;
   readonly constraints: readonly string[];
+  readonly omittedModels: number;
   readonly models: ReadonlyMap<string, CatalogModel>;
 }
 export interface Catalog {
@@ -216,7 +230,15 @@ export const indexCatalog = (input: CatalogInput): Catalog => {
           });
           continue;
         }
-        options.set(option.id, { type: option.type, values: (option.options ?? []).map((value) => value.id) });
+        const parsed = parseCatalogOption(option);
+        if (parsed === undefined) {
+          problems.push({
+            code: "catalog-invalid",
+            message: `Option "${option.id}" on ${provider.providerInstanceId}/${model.id} has neither a type nor values.`,
+          });
+          continue;
+        }
+        options.set(option.id, parsed);
       }
       models.set(model.id, { options });
     }
@@ -224,6 +246,7 @@ export const indexCatalog = (input: CatalogInput): Catalog => {
       canRunChildTask: provider.canRunChildTask,
       canRunCrossProviderChildTask: provider.canRunCrossProviderChildTask,
       constraints: provider.constraints ?? [],
+      omittedModels: provider.omittedModels ?? 0,
       models,
     });
   }
@@ -238,8 +261,15 @@ export const indexCatalog = (input: CatalogInput): Catalog => {
 const quoteList = (values: readonly string[]): string =>
   values.length === 0 ? "none" : values.map((value) => `"${value}"`).join(", ");
 
-/** Problems that make an entry unusable with this catalog. Each one names what the catalog offers instead. */
-export const checkEntry = (entry: RoleEntry, catalog: Catalog): Omit<Problem, "role" | "entry">[] => {
+/**
+ * Problems that make an entry unusable with this catalog. Each one names what the catalog offers instead.
+ * A model absent from a truncated list may still exist. `trust` passes it through so T3 decides at delegation.
+ */
+export const checkEntry = (
+  entry: RoleEntry,
+  catalog: Catalog,
+  unlistedModel: "reject" | "trust",
+): Omit<Problem, "role" | "entry">[] => {
   if (entry.use === "inherit-parent") {
     const parent =
       catalog.parentProviderInstanceId === undefined
@@ -285,9 +315,13 @@ export const checkEntry = (entry: RoleEntry, catalog: Catalog): Omit<Problem, "r
   }
   const model = provider.models.get(entry.model);
   if (model === undefined) {
+    if (provider.omittedModels > 0 && unlistedModel === "trust") return problems;
     problems.push({
       code: "model-missing",
-      message: `Model "${entry.model}" is not offered by "${entry.providerInstanceId}". Offered: ${quoteList([...provider.models.keys()])}.`,
+      message:
+        provider.omittedModels > 0
+          ? `Model "${entry.model}" is not in this catalog, which omits ${provider.omittedModels} models of "${entry.providerInstanceId}". Find it with an orchestrator_capabilities search and add it to the catalog you pass.`
+          : `Model "${entry.model}" is not offered by "${entry.providerInstanceId}". Offered: ${quoteList([...provider.models.keys()])}.`,
     });
     return problems;
   }
@@ -436,7 +470,7 @@ export const applyPatch = (current: ScopeConfig, patch: ScopePatch, catalog: Cat
         problems.push({ ...entry, role, entry: index });
         continue;
       }
-      problems.push(...checkEntry(entry, catalog).map((problem) => ({ ...problem, role, entry: index })));
+      problems.push(...checkEntry(entry, catalog, "reject").map((problem) => ({ ...problem, role, entry: index })));
       parsed.push(entry);
     }
     nextRoles[role] = parsed;
@@ -485,7 +519,7 @@ export const applyPatch = (current: ScopeConfig, patch: ScopePatch, catalog: Cat
 export const staleRoles = (scope: ScopeConfig, catalog: Catalog): Problem[] =>
   roles.flatMap((role) =>
     (scope.roles[role] ?? []).flatMap((entry, index) =>
-      checkEntry(entry, catalog).map((problem) => ({ ...problem, role, entry: index })),
+      checkEntry(entry, catalog, "trust").map((problem) => ({ ...problem, role, entry: index })),
     ),
   );
 
@@ -548,7 +582,7 @@ export const resolveRoles = (
     if (entries === undefined) return { role, kind, status: "unset", delegates: [], problems: [] };
     const source = fromProject === undefined ? "global" : "project";
     const problems = entries.flatMap((entry, index) =>
-      checkEntry(entry, catalog).map((problem) => ({ ...problem, role, entry: index })),
+      checkEntry(entry, catalog, "trust").map((problem) => ({ ...problem, role, entry: index })),
     );
     if (problems.length > 0) return { role, kind, status: "invalid", source, delegates: [], problems };
     const delegates = entries.map((entry): ResolvedDelegate => {
