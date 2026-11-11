@@ -13,7 +13,7 @@ node --import tsx scripts/sync-upstream.ts origin/main             # merge in pl
 node --import tsx scripts/sync-upstream.ts <commit> --record
 ```
 
-Paths are relative to `root` (`pstack/`). `pathMap` routes `skills/poteto-mode/` to `p3-mode`, `skills/poteto-help/` to `p3-help`, `skills/setup-pstack/` to `setup-p3`, `agents/poteto-agent.md` to the `p3-agent` skill, and `agents/comment-sicko.md` to `no-comments/references/comment-sicko.md`. `notShipped` skips upstream's plugin files, guide, `poteto-mode/scripts/` (replaced by T3 tools), and from `statechart/scripts/` the tests, the `statechart` launcher, and `tsconfig.json`. The skill runs `statechart.ts` with Node directly, so the bundle carries no file without an extension and no build config. The script reports files upstream removed and upstream files with no mapping; handle those by hand.
+Paths are relative to `root` (`pstack/`). `pathMap` routes `skills/poteto-mode/` to `p3-mode`, `skills/poteto-help/` to `p3-help`, `skills/setup-pstack/` to `setup-p3`, `agents/poteto-agent.md` to the `p3-agent` skill, and `agents/comment-sicko.md` to `no-comments/references/comment-sicko.md`. `notShipped` skips upstream's plugin files, guide, `poteto-mode/scripts/` (replaced by T3 tools), and from `statechart/scripts/` the tests and `tsconfig.json`, which only upstream's own typecheck reads. The `statechart` launcher ships: it is the one extensionless file besides `LICENSE`, listed in `extensionless` in `scripts/bundle.ts`, and it must stay executable in git so the on-disk install keeps its mode. The script reports files upstream removed and upstream files with no mapping; handle those by hand.
 
 Then audit every merged or added file. `pnpm test` fails on the mechanical cases, and the rest needs reading.
 

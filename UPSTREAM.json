@@ -55,7 +55,6 @@
     "README.md",
     ".gitignore",
     "skills/statechart/scripts/test/",
-    "skills/statechart/scripts/statechart",
     "skills/statechart/scripts/tsconfig.json"
   ]
 }

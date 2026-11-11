@@ -35,6 +35,8 @@ export const bundleFiles = (): BundleFile[] =>
 
 const allowedTop = new Set(["index.ts", "package.json", "LICENSE", "NOTICE.md", "lib", "migrations", "skills"]);
 const allowedExtension = /\.(ts|json|sql|md|tsv|sh|mjs|tla|cfg|mmd)$/;
+/** Files that ship without an extension: the license, and the statechart launcher, a POSIX shell script. */
+const extensionless = new Set(["LICENSE", "skills/statechart/scripts/statechart"]);
 const secretPatterns: readonly [string, RegExp][] = [
   ["private key", /-----BEGIN [A-Z ]*PRIVATE KEY-----/],
   ["GitHub token", /\bgh[pousr]_[A-Za-z0-9]{30,}\b/],
@@ -51,7 +53,7 @@ export const auditBundle = (files: readonly BundleFile[] = bundleFiles()): strin
   for (const file of files) {
     const top = file.path.split("/")[0]!;
     if (!allowedTop.has(top)) violations.push(`${file.path}: not part of the deployable app (allowed: ${[...allowedTop].join(", ")})`);
-    if (file.path !== "LICENSE" && !allowedExtension.test(file.path)) violations.push(`${file.path}: unexpected file type`);
+    if (!extensionless.has(file.path) && !allowedExtension.test(file.path)) violations.push(`${file.path}: unexpected file type`);
     if (/(^|\/)(node_modules|\.git|dist|build|coverage|test|tests|__tests__)(\/|$)/.test(file.path)) violations.push(`${file.path}: development or build artifact`);
     if (/\.(test|spec)\.ts$|(^|\/)\.DS_Store$|(^|\/)\.env|\.map$|\.tgz$/.test(file.path)) violations.push(`${file.path}: development artifact`);
     if (/(^|\/)(package-lock\.json|bun\.lockb?|yarn\.lock|pnpm-lock\.yaml|tsconfig\.json)$/.test(file.path)) violations.push(`${file.path}: lockfile or build config does not ship`);

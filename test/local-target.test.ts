@@ -126,6 +126,7 @@ describe("local installer", () => {
     assert.deepEqual(readdirSync(dest).sort(), [manifestName, ...full.manifest.skills].sort());
     for (const file of full.files) assert.equal(readFileSync(join(dest, file.path), "utf8"), file.content, file.path);
     assert.ok(statSync(join(dest, "show-me-your-work", "scripts", "log.sh")).mode & 0o100, "log.sh stays executable");
+    assert.ok(statSync(join(dest, "statechart", "scripts", "statechart")).mode & 0o100, "the statechart launcher stays executable");
     assert.deepEqual(readManifest(dest), full.manifest);
     assert.equal(planInstall(dest, full).unchanged, true);
   });
