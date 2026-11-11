@@ -106,9 +106,11 @@ export interface Problem {
 export class ModelConfigRejected extends Error {
   readonly code = "model-config-rejected";
   readonly problemCount: number;
-  constructor(readonly problems: readonly Problem[]) {
+  readonly problems: readonly Problem[];
+  constructor(problems: readonly Problem[]) {
     super(describeProblems(problems));
     this.name = "ModelConfigRejected";
+    this.problems = problems;
     this.problemCount = problems.length;
   }
 }
@@ -116,14 +118,15 @@ export class ModelConfigRejected extends Error {
 /** Another session saved this scope after the caller read it. */
 export class RevisionConflict extends Error {
   readonly code = "revision-conflict";
-  constructor(
-    readonly expectedRevision: number,
-    readonly currentRevision: number,
-  ) {
+  readonly expectedRevision: number;
+  readonly currentRevision: number;
+  constructor(expectedRevision: number, currentRevision: number) {
     super(
       `Expected revision ${expectedRevision} but the scope is at revision ${currentRevision}. Read it again, reconcile, and retry.`,
     );
     this.name = "RevisionConflict";
+    this.expectedRevision = expectedRevision;
+    this.currentRevision = currentRevision;
   }
 }
 
@@ -750,12 +753,11 @@ export const serializeScope = (scope: ScopeConfig): string =>
 
 export class StoredConfigCorrupt extends Error {
   readonly code = "stored-config-corrupt";
-  constructor(
-    readonly scope: string,
-    detail: string,
-  ) {
+  readonly scope: string;
+  constructor(scope: string, detail: string) {
     super(`Stored model configuration for ${scope} is unreadable: ${detail}. Reset that scope with models.write.`);
     this.name = "StoredConfigCorrupt";
+    this.scope = scope;
   }
 }
 

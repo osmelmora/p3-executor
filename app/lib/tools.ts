@@ -1,38 +1,20 @@
 import {
   array,
   boolean,
-  type Infer,
   json,
   mutation,
-  type MutationContext,
   number,
   object,
   query,
-  type QueryContext,
   record,
   router,
   string,
 } from "apps";
 import { never } from "apps/operations/approval";
-import {
-  applyPatch,
-  budgetPresets,
-  indexCatalog,
-  normalizeProjectKey,
-  type Problem,
-  resolveRoles,
-  type RoleEntry,
-  roleKinds,
-  roles,
-  type ScopeConfig,
-  staleRoles,
-} from "./model-config.js";
-import { readScopes, type StoredScope, updateScope } from "./store.js";
+import { readModels, resolveModels, writeModels } from "./service.js";
+import { sqlStore } from "./store.js";
 
 export const requirements = {};
-type Reader = Pick<QueryContext<typeof requirements>, "sql">;
-type Writer = Pick<MutationContext<typeof requirements>, "sql">;
-
 const id = () => string({ minLength: 1 });
 
 /** The orchestrator_capabilities result, passed as returned. Undeclared fields are dropped. */
@@ -151,119 +133,6 @@ export const ResolveOutput = object({
   ),
 });
 
-const entryView = (entry: RoleEntry): Infer<typeof Entry> =>
-  entry.use === "inherit-parent"
-    ? { use: entry.use }
-    : {
-        use: entry.use,
-        providerInstanceId: entry.providerInstanceId,
-        model: entry.model,
-        ...(Object.keys(entry.options).length === 0 ? {} : { options: entry.options }),
-        ...(entry.presetKeys.length === 0 ? {} : { presetKeys: entry.presetKeys }),
-      };
-
-const scopeView = (stored: StoredScope): Infer<typeof Scope> => {
-  const config: ScopeConfig = stored.config;
-  return {
-    scope: stored.project === undefined ? "global" : "project",
-    ...(stored.project === undefined ? {} : { project: stored.project }),
-    revision: stored.revision,
-    updatedAt: new Date(stored.updatedAt).toISOString(),
-    ...(config.budget === undefined ? {} : { budget: config.budget }),
-    roles: roles.flatMap((role) => {
-      const entries = config.roles[role];
-      return entries === undefined ? [] : [{ role, entries: entries.map(entryView) }];
-    }),
-    skillDelivery: Object.entries(config.skillDelivery).map(([providerInstanceId, mode]) => ({
-      providerInstanceId,
-      mode,
-    })),
-  };
-};
-
-const problemView = (problem: Problem): Infer<typeof ProblemOut> => ({
-  code: problem.code,
-  message: problem.message,
-  ...(problem.role === undefined ? {} : { role: problem.role }),
-  ...(problem.entry === undefined ? {} : { entry: problem.entry }),
-});
-
-const projectKey = (raw: string | undefined): string | undefined =>
-  raw === undefined ? undefined : normalizeProjectKey(raw);
-
-export const readModels = (
-  { sql }: Reader,
-  input: Infer<typeof ReadInput>,
-): Infer<typeof ReadOutput> => {
-  const project = projectKey(input.project);
-  const scopes = readScopes(sql, project);
-  return {
-    configured: scopes.global !== undefined || scopes.project !== undefined,
-    ...(project === undefined ? {} : { project }),
-    ...(scopes.global === undefined ? {} : { global: scopeView(scopes.global) }),
-    ...(scopes.project === undefined ? {} : { projectScope: scopeView(scopes.project) }),
-    roleCatalog: roles.map((role) => ({ role, kind: roleKinds[role] })),
-    budgetPresets: Object.entries(budgetPresets).map(([preset, proposal]) => ({ preset, proposal })),
-  };
-};
-
-export const writeModels = (
-  { sql }: Writer,
-  input: Infer<typeof WriteInput>,
-  now: number = Date.now(),
-): Infer<typeof WriteOutput> => {
-  const project = projectKey(input.project);
-  const catalog = indexCatalog(input.catalog);
-  const stored = updateScope(
-    sql,
-    project,
-    input.expectedRevision,
-    (current) => applyPatch(current, input, catalog),
-    now,
-  );
-  return {
-    saved: stored !== undefined,
-    deleted: stored === undefined,
-    ...(project === undefined ? {} : { project }),
-    ...(stored === undefined ? {} : { scope: scopeView(stored) }),
-    staleInScope: stored === undefined ? [] : staleRoles(stored.config, catalog).map(problemView),
-  };
-};
-
-export const resolveModels = (
-  { sql }: Reader,
-  input: Infer<typeof ResolveInput>,
-): Infer<typeof ResolveOutput> => {
-  const project = projectKey(input.project);
-  const catalog = indexCatalog(input.catalog);
-  const scopes = readScopes(sql, project);
-  const resolution = resolveRoles(
-    { global: scopes.global?.config, project: scopes.project?.config },
-    catalog,
-    input.roles,
-  );
-  return {
-    configured: resolution.configured,
-    setupRequired: !resolution.configured,
-    ok: resolution.ok,
-    ...(project === undefined ? {} : { project }),
-    ...(resolution.budget === undefined ? {} : { budget: resolution.budget }),
-    roles: resolution.roles.map((role) => ({
-      role: role.role,
-      kind: role.kind,
-      status: role.status,
-      ...(role.source === undefined ? {} : { source: role.source }),
-      delegates: role.delegates.map((delegate) => ({
-        inheritParent: delegate.inheritParent,
-        ...(delegate.target === undefined ? {} : { target: delegate.target }),
-        ...(delegate.runsOn === undefined ? {} : { runsOn: delegate.runsOn }),
-        skillDelivery: delegate.skillDelivery,
-      })),
-      problems: role.problems.map(problemView),
-    })),
-  };
-};
-
 export const modelsRouter = router(
   {
     read: query(
@@ -275,7 +144,7 @@ export const modelsRouter = router(
         output: ReadOutput,
         approval: never(),
       },
-      async (ctx, input) => readModels(ctx, input),
+      async (ctx, input) => readModels(sqlStore(ctx.sql), input),
     ),
     write: mutation(
       {
@@ -286,7 +155,7 @@ export const modelsRouter = router(
         output: WriteOutput,
         approval: never(),
       },
-      async (ctx, input) => writeModels(ctx, input),
+      async (ctx, input) => writeModels(sqlStore(ctx.sql), input),
     ),
     resolve: query(
       {
@@ -297,7 +166,7 @@ export const modelsRouter = router(
         output: ResolveOutput,
         approval: never(),
       },
-      async (ctx, input) => resolveModels(ctx, input),
+      async (ctx, input) => resolveModels(sqlStore(ctx.sql), input),
     ),
   },
   {

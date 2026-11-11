@@ -7,14 +7,7 @@ import {
   type ScopeConfig,
   serializeScope,
 } from "./model-config.js";
-
-export interface StoredScope {
-  readonly scopeKey: string;
-  readonly project?: string;
-  readonly config: ScopeConfig;
-  readonly revision: number;
-  readonly updatedAt: number;
-}
+import { globalScopeKey, projectScopeKey, type ScopeStore, type StoredScope } from "./service.js";
 
 type Row = {
   scope_key: string;
@@ -23,9 +16,6 @@ type Row = {
   revision: number;
   updated_at: number;
 };
-
-export const globalScopeKey = "global";
-export const projectScopeKey = (project: string): string => `project:${project}`;
 
 const toStored = (row: Row): StoredScope => ({
   scopeKey: row.scope_key,
@@ -104,3 +94,9 @@ export const updateScope = (
     );
     return { scopeKey, ...(project === undefined ? {} : { project }), config: next, revision, updatedAt: now };
   });
+
+/** The app's SQL database as a scope store. A read-only `sql` serves reads; `update` needs the writable one. */
+export const sqlStore = (sql: SqlReader | Sql): ScopeStore => ({
+  read: (project) => readScopes(sql, project),
+  update: (project, expectedRevision, update, now) => updateScope(sql as Sql, project, expectedRevision, update, now),
+});
