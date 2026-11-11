@@ -114,8 +114,8 @@ node scripts/install-local.ts --uninstall        # remove what an earlier instal
 
 | Selection | What you get | What it still needs |
 |---|---|---|
-| Full (default) | All 58 skills and a local `p3` entry skill. `$p3` works as it does with the app, and reads every skill from disk. | Executor connected and the app deployed (Install steps 1 and 2), because model choices stay in the app's database. |
-| `--standalone` | The 33 skills that need no router, no Executor, and no delegation, such as `tdd`, `unslop`, `technical-writing`, `statechart`, and 19 of the principles. `--list` prints them. | Nothing. |
+| Full (default) | All 59 skills and a local `p3` entry skill. `$p3` works as it does with the app, and reads every skill from disk. | Executor connected and the app deployed (Install steps 1 and 2), because model choices stay in the app's database. |
+| `--standalone` | The 34 skills that need no router, no Executor, and no delegation, such as `tdd`, `unslop`, `technical-writing`, `statechart`, and 19 of the principles. `--list` prints them. | Nothing. |
 
 The installer replaces only directories it installed, which it records in `.p3-install.json` in the skills directory. If a skill directory of the same name already exists, it stops and writes nothing. That includes the Executor wrapper from Install step 3, because the full install brings its own `p3` entry skill. Remove the old directory, or pass `--force` to replace it. Do not keep both installs in one skills directory.
 
@@ -156,7 +156,7 @@ Setup asks for a model for each of these 17 roles. A panel role takes a list of 
 | `why investigators`, `why synthesizer` | In `why`, the investigators collect the history of a decision and the synthesizer writes the answer |
 | `reflect tooling`, `reflect judgment, divergent, synthesizer` | The reviewers in `reflect`, which turns a thread's lessons into skill edits |
 | `arena runners` (panel) | The competing attempts in `arena` and in the Eval playbook |
-| `arena cross-judge pool` (panel) | The models `arena` picks its judge from, preferring a provider other than yours |
+| `arena cross-judge pool` (panel) | The models `arena` picks its one judge from, in list order. Only an entry on a provider other than yours can judge |
 | `architect runners` (panel) | The parallel design sketches in `architect` |
 | `interrogate reviewers` (panel) | The adversarial multi-model review in `interrogate` |
 
@@ -213,7 +213,7 @@ The tests load `app/index.ts` through `apps/host`'s `createAppHandler`, the same
 | `docs/` | no | Maintenance steps and the model-configuration reference. |
 | `.dev/` | no | Ignored scratch, such as the upstream checkout and deploy chunks. |
 
-Pins: upstream `cursor/plugins@9b93e81fb2921b9263d9463c15bafeabfe3903aa` (`pstack/`), framework `apps@0.0.1-beta.122`.
+Pins: upstream `cursor/plugins@5866df557357d005b3c0c9d3da0d9e739b4bdde3` (`pstack/`), framework `apps@0.0.1-beta.122`.
 
 ## Credit
 

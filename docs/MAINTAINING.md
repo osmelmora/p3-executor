@@ -13,7 +13,7 @@ node --import tsx scripts/sync-upstream.ts origin/main             # merge in pl
 node --import tsx scripts/sync-upstream.ts <commit> --record
 ```
 
-Paths are relative to `root` (`pstack/`). `pathMap` routes `skills/poteto-mode/` to `p3-mode`, `skills/poteto-help/` to `p3-help`, `skills/setup-pstack/` to `setup-p3`, `agents/poteto-agent.md` to the `p3-agent` skill, and `agents/comment-sicko.md` to `no-comments/references/comment-sicko.md`. `notShipped` skips upstream's plugin files, guide, `poteto-mode/scripts/` (replaced by T3 tools), and `statechart/scripts/test/`. The script reports files upstream removed and upstream files with no mapping; handle those by hand.
+Paths are relative to `root` (`pstack/`). `pathMap` routes `skills/poteto-mode/` to `p3-mode`, `skills/poteto-help/` to `p3-help`, `skills/setup-pstack/` to `setup-p3`, `agents/poteto-agent.md` to the `p3-agent` skill, and `agents/comment-sicko.md` to `no-comments/references/comment-sicko.md`. `notShipped` skips upstream's plugin files, guide, `poteto-mode/scripts/` (replaced by T3 tools), and from `statechart/scripts/` the tests, the `statechart` launcher, and `tsconfig.json`. The skill runs `statechart.ts` with Node directly, so the bundle carries no file without an extension and no build config. The script reports files upstream removed and upstream files with no mapping; handle those by hand.
 
 Then audit every merged or added file. `pnpm test` fails on the mechanical cases, and the rest needs reading.
 
@@ -63,7 +63,7 @@ Use this path when you have a shell in this repository but not the Executor CLI 
 
 1. In `execute`, discover the management app with `tools.search`, call `context.get({})` for the organization, and check that `framework.release` returns the pinned `apps` version, the same one as `appsVersion` in `manifest.json`. A different version means bumping it first (Upgrade the `apps` framework).
 2. Create the app from chunk 1: `appManagement.create({ path: { organization }, body: { name: "p3", files: <chunk-01> } })`. Chunk 1 holds `index.ts`, `package.json`, `lib/`, and `migrations/`.
-3. For each later chunk, one `execute`: read `appManagement.source`, then `appManagement.commit` with `expected: source.revision.commit` and the source files plus the chunk. A commit replaces the whole file list, so always include the files already saved. An entry with `append: true` is a later part of a file too large for one chunk (`statechart/scripts/tlc-to-chart.mjs`): append its `content` to the saved file at that path instead of adding a file.
+3. For each later chunk, one `execute`: read `appManagement.source`, then `appManagement.commit` with `expected: source.revision.commit` and the source files plus the chunk. A commit replaces the whole file list, so always include the files already saved. An entry with `append: true` is a later part of a file too large for one chunk: append its `content` to the saved file at that path instead of adding a file.
 4. Read the source once more and compare it with `manifest.json`: every path present, each `content.length` equal to its `chars`. Then `appManagement.deploy({ path: { organization, app }, body: { commit } })`.
 
 Deploying applies `migrations/0001_model_config.sql` and `migrations/0002_revision_clock.sql` in order.
@@ -71,7 +71,7 @@ Deploying applies `migrations/0001_model_config.sql` and `migrations/0002_revisi
 **Check the deployment** in a new `execute`, with no delegation:
 
 - `tools.p3.models.read({})` returns `configured: false` and 17 roles on a new app.
-- `skills({ app: "p3" })` lists 58 skills.
+- `skills({ app: "p3" })` lists 59 skills.
 - `skills({ app: "p3", name: "p3-mode" })` reads the router.
 
 ## Change stored configuration
@@ -86,5 +86,5 @@ Deploying applies `migrations/0001_model_config.sql` and `migrations/0002_revisi
 - `pnpm verify` is green.
 - `pnpm check:bundle --list` shows only `app/` source, skills, migrations, `LICENSE`, and `NOTICE.md`.
 - `NOTICE.md` names the pinned upstream commit, and `LICENSE` matches upstream.
-- `node scripts/install-local.ts --dir <an empty scratch directory>` installs 59 skills.
+- `node scripts/install-local.ts --dir <an empty scratch directory>` installs 60 skills.
 - `wrapper/p3/SKILL.md` still parses as skill `p3` and reads `{app: "p3", name: "p3-mode"}`. Installing it is a copy into `~/.agents/skills/p3/` and `~/.claude/skills/p3/` (README, Install step 3).

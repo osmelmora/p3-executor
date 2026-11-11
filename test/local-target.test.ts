@@ -39,7 +39,7 @@ const lines = (pattern: RegExp, skip: (path: string) => boolean = () => false) =
 describe("local-install target", () => {
   it("renders every source skill plus the local p3 entry skill, changing only the files the overlay names", () => {
     assert.deepEqual(skillNames(local), [...skillNames(source), entrySkill].sort());
-    assert.equal(skillNames(local).length, 59);
+    assert.equal(skillNames(local).length, 60);
     const overlaid = new Set(overlay.map((replacement) => replacement.file));
     for (const file of source) {
       const rendered = text(local, file.path);
@@ -101,7 +101,7 @@ describe("local-install target", () => {
 
   it("picks standalone skills that need no router, no Executor, and no skill outside the set", () => {
     const standalone = standaloneSkills(local);
-    assert.equal(standalone.length, 33);
+    assert.equal(standalone.length, 34);
     for (const skill of standalone) {
       const body = local.filter((file) => file.path.startsWith(`${skill}/`) && file.path.endsWith(".md")).map((file) => file.content).join("\n");
       assert.doesNotMatch(body, routerDependent, skill);
@@ -161,7 +161,7 @@ describe("local installer", () => {
     const narrowed = install(dest, select("standalone"));
     assert.ok(narrowed.stale.includes("p3-mode") && narrowed.stale.includes(entrySkill));
     assert.deepEqual(readdirSync(dest).sort(), [manifestName, "my-own-skill", ...select("standalone").manifest.skills].sort());
-    assert.equal(uninstall(dest).length, 33);
+    assert.equal(uninstall(dest).length, 34);
     assert.deepEqual(readdirSync(dest), ["my-own-skill"]);
     assert.deepEqual(uninstall(dest), []);
   });
@@ -178,7 +178,7 @@ describe("local installer", () => {
       spawnSync(process.execPath, [join(root, "scripts", "install-local.ts"), "--dir", dest, ...args], { encoding: "utf8", env: { ...process.env, NODE_OPTIONS: "" } });
     const dry = run("--dry-run");
     assert.equal(dry.status, 0, dry.stderr);
-    assert.match(dry.stdout, /would install 59 skills, version [0-9a-f]{12}/);
+    assert.match(dry.stdout, /would install 60 skills, version [0-9a-f]{12}/);
     assert.deepEqual(readdirSync(dest), []);
 
     mkdirSync(join(dest, "unslop"));
@@ -189,7 +189,7 @@ describe("local installer", () => {
 
     const alone = run("--standalone", "--force");
     assert.equal(alone.status, 0, alone.stderr);
-    assert.match(alone.stdout, /installed 33 skills.*replaced unslop/);
+    assert.match(alone.stdout, /installed 34 skills.*replaced unslop/);
     assert.equal(run("--uninstall").status, 0);
     assert.deepEqual(readdirSync(dest), []);
   });

@@ -36,7 +36,7 @@ On a fresh scope, offer three ways to choose:
 - **By group.** One choice per group, then edits to single roles. Code: `feature, refactoring`, `bug-fix`, `perf-issue`, `hillclimb`, `swarm workers`. Judgment: `judgment and prose`, `how explainer`, `why synthesizer`, `reflect tooling`, `reflect judgment, divergent, synthesizer`. Hardest: `hardest tasks`. Explorers: `how explorer`, `why investigators`. Panels: `arena runners`, `arena cross-judge pool`, `architect runners`, `interrogate reviewers`.
 - **Role by role.**
 
-Each answer is `inherit-parent` or a `providerInstanceId` and model id from the catalog. A panel is a list. Each entry runs one delegate, `inherit-parent` entries included, so the list length is the fan-out. Suggest one entry per usable provider instance for panels, since review signal comes from model diversity, and let the user pick each model. `arena cross-judge pool` is the list Arena picks one judge from, preferring a provider other than the parent's.
+Each answer is `inherit-parent` or a `providerInstanceId` and model id from the catalog. A panel is a list. Each entry runs one delegate, `inherit-parent` entries included, so the list length is the fan-out. Suggest one entry per usable provider instance for panels, since review signal comes from model diversity, and let the user pick each model. `arena cross-judge pool` is also a list, but Arena runs one judge. It tries only entries on a provider other than the parent's, in list order, so order it by preference. An `inherit-parent` entry never judges.
 
 On a re-run, start from the saved scope and keep every role the user does not change.
 

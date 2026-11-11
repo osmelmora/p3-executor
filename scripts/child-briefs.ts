@@ -266,18 +266,6 @@ export const walkthroughBriefs = (skills: Skills): Brief[] => {
       parts: [template(skills, "why", "references/synthesizer-prompt.md"), attach(skills, "why", "references/epistemics.md", "framework the header names")],
       parentKeeps: ["presentation"],
     },
-    {
-      id: "interrogate-reviewer",
-      role: "interrogate reviewers panel seat",
-      kind: "template",
-      parentWritten: "Intent and diff filled into the template's placeholders.",
-      parts: [
-        template(skills, "interrogate", "references/reviewer-prompt.md"),
-        attach(skills, "interrogate", "references/rubric.md", "rubric the header names"),
-        attach(skills, "interrogate", "references/code-quality-review.md", "lens the header names"),
-      ],
-      parentKeeps: ["synthesis", "lead judgment"],
-    },
     ...(["judgment-reviewer", "tooling-reviewer", "divergent-reviewer"] as const).map(
       (name): Brief => ({
         id: `reflect-${name}`,

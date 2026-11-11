@@ -128,9 +128,9 @@ A p3 skill is edited in the p3 source repository and reaches agents only after a
 ## statechart/SKILL.md
 
 @@ executor
-The commands are scripts bundled with this skill. Executor returns each one as text and never runs it. Read every file under `scripts/` from this app with `{app, name: "statechart", file}`: `scripts/statechart.mjs`, `scripts/lib.mjs`, `scripts/chart-to-tla.mjs`, `scripts/tlc-to-chart.mjs`, `scripts/compare-charts.mjs`, `scripts/model/OutputFolder.tla`, `scripts/model/OutputFolder.cfg`, and `scripts/model/OutputFolder.map.mjs`. Save them in one directory outside the repository, such as `${TMPDIR:-/tmp}/p3/statechart/`, under the same relative paths, because the scripts import each other. Run `node <that directory>/scripts/statechart.mjs --help` for the commands and for how to read a chart.
+The command is TypeScript bundled with this skill. Executor returns each file as text and never runs it. Read every file under `scripts/` from this app with `{app, name: "statechart", file}`: `scripts/ir.ts`, `scripts/package.json`, `scripts/pipeline.ts`, `scripts/run.ts`, `scripts/statechart.ts`, `scripts/worker.ts`, `scripts/backends/cfg.ts`, `scripts/backends/mermaid.ts`, `scripts/backends/plain-text.ts`, `scripts/backends/report.ts`, `scripts/frontends/config.ts`, `scripts/frontends/dot.ts`, `scripts/frontends/marks.ts`, `scripts/frontends/messages.ts`, `scripts/frontends/spec.ts`, `scripts/frontends/trace.ts`, `scripts/frontends/value.ts`, `scripts/frontends/verdict.ts`, `scripts/frontends/view.ts`, `scripts/passes/annotate.ts`, `scripts/passes/label.ts`, `scripts/passes/lift.ts`, `scripts/passes/loop-check.ts`, `scripts/passes/paths.ts`, `scripts/passes/reach.ts`, `scripts/passes/region-check.ts`, and `scripts/passes/regions.ts`. Save them in one directory outside the repository, such as `${TMPDIR:-/tmp}/p3/statechart/`, under the same relative paths, because the files import each other. `<scripts dir>` is the `scripts/` directory inside it.
 @@ local
-The commands are scripts in this skill's `scripts/` directory. Run `node <this skill's directory>/scripts/statechart.mjs --help` for the commands and for how to read a chart.
+The command is TypeScript in this skill's `scripts/` directory, which is `<scripts dir>`.
 @@ end
 
 ## show-me-your-work/SKILL.md
