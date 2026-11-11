@@ -1,12 +1,12 @@
 ---
 name: setup-p3
-description: Choose which T3 provider and model each p3 role delegates to, with a reasoning preset, panels, and optional project overrides, and save the choices in this Executor app. Use for $p3 setup, "configure p3 models", "p3 budget", changing a role's model, or first use when nothing is saved.
+description: Choose which T3 provider and model each p3 role delegates to, with a reasoning preset, panels, and optional project overrides, and save the choices in the p3 Executor app. Use for $p3 setup, "configure p3 models", "p3 budget", changing a role's model, or first use when nothing is saved.
 disable-model-invocation: true
 ---
 
 # Setup p3
 
-Save the user's model choice for each p3 role in this app. The choices pick `delegate_task` targets for child agents only. The model running this conversation never changes.
+Save the user's model choice for each p3 role in the p3 Executor app. The choices pick `delegate_task` targets for child agents only. The model running this conversation never changes.
 
 Propose only from the catalog and the user's answers. The model running this conversation, and any model a brief or an earlier task used, is not the user's preference until they choose it here.
 

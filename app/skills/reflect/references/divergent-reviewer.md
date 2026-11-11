@@ -18,7 +18,7 @@ Scan for:
 
 ## Scope to skills and tools the session actually used
 
-Route findings only to skills, tools, or MCPs this transcript used. A skill counts as used when the transcript shows an Executor `skills` tool read of it (`{app, name}` or `{app, name, file}`, which is how p3 skills load), a file read of its `SKILL.md` (under `.agents/skills/`, `~/.agents/skills/`, or a repo-relative skill path) for a skill outside p3, a `delegate_task` brief naming its path or pasting its text, or a tool call (shell, search, MCP, etc.) matching its documented commands. Speculative routings to skills the parent never opened do not count.
+Route findings only to skills, tools, or MCPs this transcript used. A skill counts as used when the transcript shows an Executor `skills` tool read of it (`{app, name}` or `{app, name, file}`), a file read of its `SKILL.md` (under a p3 skills root, `.agents/skills/`, `~/.agents/skills/`, or a repo-relative skill path), a `delegate_task` brief naming its path or pasting its text, or a tool call (shell, search, MCP, etc.) matching its documented commands. Speculative routings to skills the parent never opened do not count.
 
 Two finding shapes are valid:
 - The parent invoked the skill and you found a real gap in its body. Route to the skill's relevant section.
@@ -29,7 +29,7 @@ Drop any skill that was neither invoked nor a missed-trigger candidate.
 List each durable learning. For each:
 - Principle: one sentence naming the contrarian or second-order observation. Don't restate the obvious learning. Name the one beneath it.
 - Evidence: the exact moment in the transcript (turn number or short quote, including what was said AND what wasn't).
-- Routing: the most relevant existing skill (its `SKILL.md` path as the transcript shows it, or the p3 skill's name for a skill read from Executor), OR `tune description: <skill path>` when the skill should have triggered but didn't, OR "new skill: <kebab-name>".
+- Routing: the most relevant existing skill (its `SKILL.md` path as the transcript shows it, or the skill's name for one read from Executor), OR `tune description: <skill path>` when the skill should have triggered but didn't, OR "new skill: <kebab-name>".
 
 Skip trivial things and anything already obvious from the skill the parent followed. Skip implementation details that drift: specific SHAs, current file paths, version numbers, exact byte counts. Surface only principles and patterns that survive code drift.
 

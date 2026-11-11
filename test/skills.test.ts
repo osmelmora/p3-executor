@@ -237,7 +237,7 @@ describe("bundled skills", async () => {
     assert.match(step6, /never omit `target` to run it on this conversation's model instead/);
     assert.match(step6, /is not a model choice\. Only the user's explicit approval of a named replacement lets that role run/);
     const trail = catalog.find((skill) => skill.name === "show-me-your-work")!.files.find((file) => file.path === "SKILL.md")!.content;
-    assert.match(trail, /on the `judgment and prose` role, resolved through this app's `models\.resolve`/);
+    assert.match(trail, /on the `judgment and prose` role, resolved through `models\.resolve`/);
   });
 
   it("refresh the catalog for each task, dispatch wave, and rejected target", () => {

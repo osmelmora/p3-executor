@@ -134,7 +134,7 @@ You own every delegate's work. Review the diff and write your own summary, don't
 
 ## Model configuration
 
-The user's role choices live in this app, saved by **setup-p3**. They choose child models only. This conversation's model never changes. Executor cannot see T3's providers. It checks the catalog you pass, so every check is only as current as that catalog.
+The user's role choices live in the p3 Executor app, saved by **setup-p3**. They choose child models only. This conversation's model never changes. Executor cannot see T3's providers. It checks the catalog you pass, so every check is only as current as that catalog.
 
 1. Call `orchestrator_capabilities` at the start of each task, before each dispatch wave (the `delegate_task` calls you send together), and again after `delegate_task` rejects a target. Never reuse a catalog from an earlier task or wave. Its result is the `catalog`, passed as returned.
 2. Before each wave, call `models.resolve({ catalog, project, roles })` with that wave's catalog, for the roles the wave uses. `project` is the repository's `origin` remote (`git remote get-url origin`). Omit it when there is no remote.
