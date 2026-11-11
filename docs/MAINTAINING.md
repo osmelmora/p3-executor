@@ -39,11 +39,13 @@ A new upstream role needs four edits: `roleKinds` in `app/lib/model-config.ts`, 
 
 ## Keep the on-disk install in step
 
-`app/skills/` is the only copy of the skill text. The on-disk install (README, Install the skills on disk instead) is rendered from it by `scripts/local-target.ts`, which applies the replacements in `local/overlay.md` and adds the entry skill in `local/p3/`. Nothing rendered is committed.
+`app/skills/` is the only copy of the skill text. The on-disk install (README, Install the skills on disk instead) is rendered from it by `scripts/local-target.ts`, which applies the replacements in `local/overlay.md`, adds the entry skill in `local/p3/`, and adds the model command. Nothing rendered is committed.
+
+The model command is `local/models/` plus `app/lib/model-config.ts` and `app/lib/service.ts`, copied into `p3-mode/scripts/` with their import paths rewritten. Those two modules hold every model operation and must import nothing but each other, so they run under Node's type stripping: no parameter properties, enums, or namespaces. `app/lib/store.ts` is the app's SQL storage and `local/models/file-store.ts` is the file storage, both behind `ScopeStore` in `service.ts`. A change to the operations therefore reaches both installs, and a storage change must keep both stores passing their tests.
 
 - Write new skill text so it holds for both installs. Say "the **name** skill", "`models.resolve` (p3-mode's Model configuration)", and "the p3 Executor app". Avoid "this app", and keep how a skill or file is read inside p3-mode's Loading p3 skills section.
 - Text that must differ gets a block in `local/overlay.md`. A block's executor text must occur exactly once in its file. When a sync or an edit changes that text, the render throws and `test/local-target.test.ts` fails, naming the file. Update the block to match.
-- `test/local-target.test.ts` also fails when the rendered copy tells an agent to read from Executor, or mentions Executor in a file outside its allowlist. A new mention needs either neutral wording in the source or a new overlay block.
+- The on-disk install never uses Executor. `test/local-target.test.ts` fails when any rendered file outside the shared code in `p3-mode/scripts/lib/` mentions it. A new mention in a skill needs either neutral wording in the source or a new overlay block.
 - The standalone set is computed, not listed: a skill qualifies when its text matches none of `routerDependent` in `scripts/local-target.ts` and every skill it names in bold also qualifies. The test pins the count, so a change to it is a deliberate edit.
 
 ## Upgrade the `apps` framework

@@ -98,7 +98,7 @@ The agent reads `p3-mode` from Executor and runs the `setup-p3` skill. It lists 
 
 ## Install the skills on disk instead
 
-The default install above keeps every skill in the Executor app. You can instead install the skills as plain skill directories, in your home directory or in one project. Use this when you want the skills readable on disk, or want some of them without `$p3` and without Executor. The trade-off is that an update is a reinstall on each machine instead of one redeploy.
+The default install above keeps every skill and your model choices in the Executor app. You can instead install p3 as plain skill directories, in your home directory or in one project. This install is separate from Executor: it reads skills from disk, saves model choices in a file on your machine, and never calls the app. The trade-off is that an update is a reinstall on each machine instead of one redeploy, and model choices are per machine.
 
 The installer needs only Node.js 24.14.0 or newer and a clone of this repository. It needs no `pnpm install`.
 
@@ -114,12 +114,14 @@ node scripts/install-local.ts --uninstall        # remove what an earlier instal
 
 | Selection | What you get | What it still needs |
 |---|---|---|
-| Full (default) | All 59 skills and a local `p3` entry skill. `$p3` works as it does with the app, and reads every skill from disk. The entry skill is a thin alias here: it only reads `p3-mode` from the folder beside it, so invoking `p3-mode` directly does the same thing. | Executor connected and the app deployed (Install steps 1 and 2), because model choices stay in the app's database. |
-| `--standalone` | The 34 skills that need no router, no Executor, and no delegation, such as `tdd`, `unslop`, `technical-writing`, `statechart`, and 19 of the principles. `--list` prints them. | Nothing. |
+| Full (default) | All 59 skills and a local `p3` entry skill. `$p3` works as it does with the app, and reads every skill from disk. The entry skill is a thin alias here: it only reads `p3-mode` from the folder beside it, so invoking `p3-mode` directly does the same thing. | Nothing. Model choices are saved in `~/.p3/models.json` by a command that ships inside the install. |
+| `--standalone` | The 34 skills that need no router, no model setup, and no delegation, such as `tdd`, `unslop`, `technical-writing`, `statechart`, and 19 of the principles. `--list` prints them. | Nothing. |
 
 The installer replaces only directories it installed, which it records in `.p3-install.json` in the skills directory. If a skill directory of the same name already exists, it stops and writes nothing. That includes the Executor wrapper from Install step 3, because the full install brings its own `p3` entry skill. Remove the old directory, or pass `--force` to replace it. Do not keep both installs in one skills directory.
 
-To update, pull this repository and run the same command again. The Executor app does not need a redeploy unless `app/lib/` or `app/migrations/` changed.
+To update, pull this repository and run the same command again. Reinstalling keeps `~/.p3/models.json`.
+
+The two installs do not share model choices. The Executor app keeps its own in its database, and the on-disk install keeps its own in the file. Set `P3_HOME` to keep the file somewhere other than `~/.p3`.
 
 ## Use p3
 
@@ -206,7 +208,7 @@ The tests load `app/index.ts` through `apps/host`'s `createAppHandler`, the same
 |---|---|---|
 | `app/` | yes | The deployable app: `index.ts`, `lib/`, `migrations/`, `skills/`, `package.json`, `LICENSE`, `NOTICE.md`. |
 | `wrapper/p3/SKILL.md` | no | The local `p3` wrapper skill for the Executor install. It holds no workflow text. |
-| `local/` | no | What turns `app/skills/` into the on-disk install: `overlay.md`, the text that differs, and `p3/`, its entry skill. |
+| `local/` | no | What turns `app/skills/` into the on-disk install: `overlay.md`, the text that differs, `p3/`, its entry skill, and `models/`, the command that stores model choices in a file. |
 | `UPSTREAM.json` | no | The pinned pstack commit, and the path map and name rewrites the sync script uses. |
 | `test/` | no | Behavioral tests that run the real app module through the `apps` framework handler on SQLite. |
 | `scripts/` | no | Bundle audit, deploy payload, upstream sync, the child-brief walkthrough (`child-briefs.ts`), and the on-disk installer (`install-local.ts`, `local-target.ts`). |

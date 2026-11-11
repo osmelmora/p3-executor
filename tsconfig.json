@@ -11,6 +11,6 @@
     "exactOptionalPropertyTypes": false,
     "types": ["node"]
   },
-  "include": ["app/**/*.ts", "test/**/*.ts", "scripts/**/*.ts"],
+  "include": ["app/**/*.ts", "test/**/*.ts", "scripts/**/*.ts", "local/**/*.ts"],
   "exclude": ["app/skills/**"]
 }

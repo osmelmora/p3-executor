@@ -2,7 +2,7 @@
  * Installs p3 as skill directories on disk, instead of reading its skills from the Executor app.
  *
  *   node scripts/install-local.ts                       # every skill, into ~/.claude/skills and ~/.agents/skills
- *   node scripts/install-local.ts --standalone          # only the skills that need no router and no Executor
+ *   node scripts/install-local.ts --standalone          # only the skills that need no router and no delegation
  *   node scripts/install-local.ts --project <repo>      # into <repo>/.claude/skills and <repo>/.agents/skills
  *   node scripts/install-local.ts --uninstall           # remove what an earlier install put there
  */
@@ -19,7 +19,7 @@ Where to install (default: your home directory, for both Claude and Codex)
   --dir <dir>       install into exactly this skills directory; repeatable
 
 What to install (default: every p3 skill and the $p3 entry point)
-  --standalone      only the skills that need no p3 router, no Executor, and no delegation
+  --standalone      only the skills that need no p3 router and no delegation
 
 Other
   --force           replace skill directories that p3 did not install
@@ -102,8 +102,8 @@ for (const plan of plans) {
 }
 
 if (selection.manifest.mode === "full") {
-  console.log("\nNext: restart the agent session, then start a task with $p3. Model choices stay in the p3 Executor app,");
-  console.log("so Executor must be connected for each provider and the app deployed (README, Install steps 1 and 2).");
+  console.log("\nNext: restart the agent session, then start a task with $p3. Model choices are saved on this machine,");
+  console.log("in ~/.p3/models.json. The first task runs setup when nothing is saved yet.");
 } else {
-  console.log("\nNext: restart the agent session. These skills need no Executor and no $p3 entry point.");
+  console.log("\nNext: restart the agent session. These skills need no $p3 entry point and no setup.");
 }

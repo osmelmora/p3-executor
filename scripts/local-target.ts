@@ -102,7 +102,34 @@ export const renderLocal = (
     throw new Error(`app/skills/${entrySkill} collides with the local entry skill`);
   }
   for (const file of filesUnder(join(localDir, entrySkill), `${entrySkill}/`)) rendered.set(file.path, file);
+  for (const file of modelCommandFiles()) rendered.set(file.path, file);
   return [...rendered.values()].sort((a, b) => a.path.localeCompare(b.path));
+};
+
+/** Where the model command lives in the install, and the app modules it runs. */
+export const modelCommandDir = "p3-mode/scripts";
+const sharedModules = ["model-config.ts", "service.ts"];
+
+/**
+ * The model command: `local/models/` plus the storage-independent modules from `app/lib/`, with import
+ * paths rewritten so the copy runs under Node's type stripping from inside the install.
+ */
+const modelCommandFiles = (): LocalFile[] => {
+  const libDir = join(root, "app", "lib");
+  const shared = sharedModules.map((name): LocalFile => {
+    const content = readFileSync(join(libDir, name), "utf8");
+    for (const match of content.matchAll(/from "([^"]+)"/g)) {
+      if (!sharedModules.includes(match[1]!.replace(/^\.\//, "").replace(/\.js$/, ".ts"))) {
+        throw new Error(`app/lib/${name} imports ${match[1]}, which the on-disk install does not ship`);
+      }
+    }
+    return { path: `${modelCommandDir}/lib/${name}`, content: content.replace(/(from "\.\/[^"]+)\.js"/g, '$1.ts"'), mode: 0o644 };
+  });
+  const command = filesUnder(join(localDir, "models"), `${modelCommandDir}/`).map((file) => ({
+    ...file,
+    content: file.content.replaceAll('"../../app/lib/', '"./lib/'),
+  }));
+  return [...command, ...shared];
 };
 
 export const skillNames = (files: readonly LocalFile[]): string[] =>

@@ -62,36 +62,29 @@ describe("local-install target", () => {
     assert.throws(() => parseOverlay("@@ executor\nx\n@@ local\ny\n@@ end\n"), /needs a "## <file>" heading/);
   });
 
-  it("carries no instruction to read p3 skills from Executor", () => {
-    const transcriptShapes = (path: string) => /^reflect\/references\/(judgment|tooling|divergent)-reviewer\.md$/.test(path);
-    assert.deepEqual(lines(/\{app[,:]|`skills` tool/, transcriptShapes), []);
-    assert.deepEqual(lines(/profileRevision|\bthis (Executor )?app\b|Nothing is installed locally|\bredeploy|\bdeployment\b/), []);
-    assert.deepEqual(lines(/Executor returns|save it (once )?outside the repository/), [], "bundled scripts run in place");
-    const mentions = new Set(lines(/Executor/).map((where) => where.split(":")[0]));
-    assert.deepEqual([...mentions].sort(), [
-      "p3-agent/SKILL.md",
-      "p3-help/SKILL.md",
-      "p3-mode/SKILL.md",
-      "p3/SKILL.md",
-      "reflect/references/divergent-reviewer.md",
-      "reflect/references/judgment-reviewer.md",
-      "reflect/references/tooling-reviewer.md",
-      "setup-p3/SKILL.md",
-    ]);
+  it("never mentions Executor: no skill text, entry point, or command depends on it", () => {
+    const sharedCode = (path: string) => path.startsWith("p3-mode/scripts/lib/");
+    assert.deepEqual(lines(/executor/i, sharedCode), []);
+    assert.deepEqual(lines(/\{app[,:]|`skills` tool|app slug|tools\.<|profileRevision|\bthis app\b|Nothing is installed locally|\bredeploy|\bdeployment\b/, sharedCode), []);
+    assert.deepEqual(lines(/save it (once )?outside the repository/), [], "bundled scripts run in place");
   });
 
-  it("reads skills from the skills root and keeps model choices in the Executor app", () => {
+  it("reads skills from the skills root and model choices through the local command", () => {
     const mode = text(local, "p3-mode/SKILL.md");
     assert.match(mode, /Read a skill by reading `<skills root>\/<name>\/SKILL\.md` in full\./);
     assert.match(mode, /`<skills root>\/\.p3-install\.json` records the installed `version`/);
-    assert.match(mode, /Call the p3 app's tools inside Executor `execute` at `tools\.<app slug>\.models\.\*`\. The slug is `p3` unless/);
-    assert.match(mode, /"Read `<skills root>\/p3-mode\/SKILL\.md` and follow its Coordinating child branch\. If you cannot read that file, or cannot call Executor's `execute` tool, do no work and reply exactly `P3_SKILLS_UNAVAILABLE`\."/);
+    assert.match(mode, /run `node <skills root>\/p3-mode\/scripts\/models\.ts <read\|write\|resolve> <that file>`, and read the JSON it prints\./);
+    assert.match(mode, /"Read `<skills root>\/p3-mode\/SKILL\.md` and follow its Coordinating child branch\. If you cannot read that file or run its model command, do no work and reply exactly `P3_SKILLS_UNAVAILABLE`\."/);
     const prompt = /## Scheduled ticks\n\n.*\n\n"(.+)"\n/.exec(mode)?.[1];
     assert.ok(prompt, "p3-mode defines the tick prompt");
     for (const part of ["<skills root>/p3-mode/SKILL.md", "<skills root>/p3-mode/<playbook path>", "<skills root>/.p3-install.json", "repository <absolute path>", "delegated task ids in <path>"]) {
       assert.ok(prompt.includes(part), `tick prompt carries ${part}`);
     }
     for (const call of ["models.read", "models.resolve", "models.write"]) assert.ok(mode.includes(call), `p3-mode still calls ${call}`);
+    for (const file of ["models.ts", "file-store.ts", "lib/service.ts", "lib/model-config.ts"]) {
+      const content = text(local, `p3-mode/scripts/${file}`);
+      assert.doesNotMatch(content, /from "[^"]*(app\/lib|apps)[^"]*"|from "\.[^"]*\.js"/, `${file} imports only what the install ships`);
+    }
 
     const entry = text(local, `${entrySkill}/SKILL.md`);
     assert.match(entry, /Read `p3-mode\/SKILL\.md` in the directory that holds this skill's directory\./);
@@ -193,5 +186,89 @@ describe("local installer", () => {
     assert.match(alone.stdout, /installed 34 skills.*replaced unslop/);
     assert.equal(run("--uninstall").status, 0);
     assert.deepEqual(readdirSync(dest), []);
+  });
+});
+
+describe("local model command", () => {
+  const dest = join(scratch(), "skills");
+  install(dest, select("full"));
+  const home = scratch();
+  const command = join(dest, "p3-mode", "scripts", "models.ts");
+  const catalog = JSON.parse(readFileSync(join(root, "test", "fixtures", "live-capabilities.json"), "utf8")) as {
+    providers: { providerInstanceId: string; canRunChildTask: boolean; models: { id: string }[] }[];
+  };
+  const provider = catalog.providers.find((candidate) => candidate.canRunChildTask)!;
+  const entry = { use: "model", providerInstanceId: provider.providerInstanceId, model: provider.models[0]!.id };
+  type Reply = { status: number; value: Record<string, any> };
+  const run = (name: string, input?: unknown, env: Record<string, string> = {}): Reply => {
+    const args = [command, name];
+    if (input !== undefined) {
+      const file = join(scratch(), "input.json");
+      writeFileSync(file, JSON.stringify(input));
+      args.push(file);
+    }
+    const result = spawnSync(process.execPath, args, { encoding: "utf8", env: { ...process.env, NODE_OPTIONS: "", P3_HOME: home, ...env } });
+    return { status: result.status ?? -1, value: JSON.parse(result.stdout) as Record<string, any> };
+  };
+
+  it("runs from the installed copy with node alone and starts unconfigured", () => {
+    assert.equal(run("where").value["file"], join(home, "models.json"));
+    const read = run("read");
+    assert.equal(read.status, 0);
+    assert.equal(read.value["configured"], false);
+    assert.equal(read.value["roleCatalog"].length, 17);
+    assert.equal(run("resolve", { catalog }).value["setupRequired"], true);
+    assert.equal(existsSync(join(home, "models.json")), false, "reading creates no file");
+  });
+
+  it("saves choices to the file, resolves them to delegate targets, and layers a project over global", () => {
+    const saved = run("write", { catalog, expectedRevision: 0, budget: "medium", set: [{ role: "bug-fix", entries: [entry] }, { role: "swarm workers", entries: [{ use: "inherit-parent" }] }] });
+    assert.equal(saved.status, 0, JSON.stringify(saved.value));
+    assert.equal(saved.value["scope"]["revision"], 1);
+    const project = "git@github.com:example/repo.git";
+    const scoped = run("write", { catalog, project, expectedRevision: 0, set: [{ role: "bug-fix", entries: [{ use: "inherit-parent" }] }] });
+    assert.equal(scoped.value["scope"]["revision"], 2, "one clock for the whole file");
+
+    const roles = (reply: Reply) => Object.fromEntries((reply.value["roles"] as any[]).map((role) => [role.role, role]));
+    const global = roles(run("resolve", { catalog, roles: ["bug-fix", "swarm workers", "hillclimb"] }));
+    assert.deepEqual(global["bug-fix"].delegates[0].target, { providerInstanceId: entry.providerInstanceId, model: entry.model });
+    assert.equal(global["swarm workers"].delegates[0].inheritParent, true);
+    assert.equal(global["hillclimb"].status, "unset");
+    const layered = roles(run("resolve", { catalog, project, roles: ["bug-fix", "swarm workers"] }));
+    assert.equal(layered["bug-fix"].delegates[0].inheritParent, true);
+    assert.equal(layered["bug-fix"].source, "project");
+    assert.equal(layered["swarm workers"].source, "global");
+
+    const stored = JSON.parse(readFileSync(join(home, "models.json"), "utf8")) as { version: number; clock: number; scopes: Record<string, unknown> };
+    assert.equal(stored.version, 1);
+    assert.equal(stored.clock, 2);
+    assert.equal(Object.keys(stored.scopes).length, 2);
+  });
+
+  it("rejects stale revisions, unknown models, and malformed input with a code and exit 1, saving nothing", () => {
+    const before = readFileSync(join(home, "models.json"), "utf8");
+    const stale = run("write", { catalog, expectedRevision: 0, set: [{ role: "hillclimb", entries: [entry] }] });
+    assert.equal(stale.status, 1);
+    assert.equal(stale.value["error"]["code"], "revision-conflict");
+    assert.equal(stale.value["error"]["currentRevision"], 1);
+    const unknown = run("write", { catalog, expectedRevision: 1, set: [{ role: "hillclimb", entries: [{ ...entry, model: "no-such-model" }] }] });
+    assert.equal(unknown.value["error"]["code"], "model-config-rejected");
+    assert.equal(unknown.value["error"]["problems"][0]["code"], "model-missing");
+    assert.equal(run("resolve", { roles: ["bug-fix"] }).value["error"]["code"], "invalid-input");
+    assert.equal(run("write", { catalog, set: "bug-fix" }).value["error"]["code"], "invalid-input");
+    assert.equal(run("explode").value["error"]["code"], "invalid-input");
+    assert.equal(readFileSync(join(home, "models.json"), "utf8"), before);
+  });
+
+  it("never reuses a revision after a scope is deleted, and reports a corrupt file", () => {
+    const cleared = run("write", { catalog, expectedRevision: 1, reset: true });
+    assert.equal(cleared.value["deleted"], true);
+    const again = run("write", { catalog, expectedRevision: 0, set: [{ role: "bug-fix", entries: [entry] }] });
+    assert.equal(again.value["scope"]["revision"], 3);
+    const broken = scratch();
+    writeFileSync(join(broken, "models.json"), "{ not json");
+    const corrupt = run("read", undefined, { P3_HOME: broken });
+    assert.equal(corrupt.status, 1);
+    assert.equal(corrupt.value["error"]["code"], "stored-config-corrupt");
   });
 });
