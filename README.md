@@ -114,7 +114,7 @@ node scripts/install-local.ts --uninstall        # remove what an earlier instal
 
 | Selection | What you get | What it still needs |
 |---|---|---|
-| Full (default) | All 59 skills and a local `p3` entry skill. `$p3` works as it does with the app, and reads every skill from disk. | Executor connected and the app deployed (Install steps 1 and 2), because model choices stay in the app's database. |
+| Full (default) | All 59 skills and a local `p3` entry skill. `$p3` works as it does with the app, and reads every skill from disk. The entry skill is a thin alias here: it only reads `p3-mode` from the folder beside it, so invoking `p3-mode` directly does the same thing. | Executor connected and the app deployed (Install steps 1 and 2), because model choices stay in the app's database. |
 | `--standalone` | The 34 skills that need no router, no Executor, and no delegation, such as `tdd`, `unslop`, `technical-writing`, `statechart`, and 19 of the principles. `--list` prints them. | Nothing. |
 
 The installer replaces only directories it installed, which it records in `.p3-install.json` in the skills directory. If a skill directory of the same name already exists, it stops and writes nothing. That includes the Executor wrapper from Install step 3, because the full install brings its own `p3` entry skill. Remove the old directory, or pass `--force` to replace it. Do not keep both installs in one skills directory.
