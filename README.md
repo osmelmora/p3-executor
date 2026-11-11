@@ -96,6 +96,31 @@ $p3 configure models
 
 The agent reads `p3-mode` from Executor and runs the `setup-p3` skill. It lists the providers and models your T3 offers, asks for a reasoning preset, and asks which model each role uses. You can choose by group, role by role, or this conversation's model everywhere. The choices save globally or for one repository. If you skip this step, your first p3 task runs setup first.
 
+## Install the skills on disk instead
+
+The default install above keeps every skill in the Executor app. You can instead install the skills as plain skill directories, in your home directory or in one project. Use this when you want the skills readable on disk, or want some of them without `$p3` and without Executor. The trade-off is that an update is a reinstall on each machine instead of one redeploy.
+
+The installer needs only Node.js 24.14.0 or newer and a clone of this repository. It needs no `pnpm install`.
+
+```sh
+node scripts/install-local.ts                    # every skill, into ~/.claude/skills and ~/.agents/skills
+node scripts/install-local.ts --project <repo>   # into <repo>/.claude/skills and <repo>/.agents/skills
+node scripts/install-local.ts --standalone       # only the skills that work with nothing else set up
+node scripts/install-local.ts --dry-run          # print what would change, write nothing
+node scripts/install-local.ts --uninstall        # remove what an earlier install put there
+```
+
+`--claude` or `--codex` narrows the install to one provider's directory, and `--dir <path>` names an exact skills directory. Restart the agent session afterwards.
+
+| Selection | What you get | What it still needs |
+|---|---|---|
+| Full (default) | All 58 skills and a local `p3` entry skill. `$p3` works as it does with the app, and reads every skill from disk. | Executor connected and the app deployed (Install steps 1 and 2), because model choices stay in the app's database. |
+| `--standalone` | The 33 skills that need no router, no Executor, and no delegation, such as `tdd`, `unslop`, `technical-writing`, `statechart`, and 19 of the principles. `--list` prints them. | Nothing. |
+
+The installer replaces only directories it installed, which it records in `.p3-install.json` in the skills directory. If a skill directory of the same name already exists, it stops and writes nothing. That includes the Executor wrapper from Install step 3, because the full install brings its own `p3` entry skill. Remove the old directory, or pass `--force` to replace it. Do not keep both installs in one skills directory.
+
+To update, pull this repository and run the same command again. The Executor app does not need a redeploy unless `app/lib/` or `app/migrations/` changed.
+
 ## Use p3
 
 Start each task with `$p3` and the task. T3 has no `/p3` command. Typing `$` in the composer lists skills, and by default the `/` menu also lists this one as `/skill:P3`. Choosing it from either list inserts `$p3`.
@@ -180,10 +205,11 @@ The tests load `app/index.ts` through `apps/host`'s `createAppHandler`, the same
 | Path | Ships | What it holds |
 |---|---|---|
 | `app/` | yes | The deployable app: `index.ts`, `lib/`, `migrations/`, `skills/`, `package.json`, `LICENSE`, `NOTICE.md`. |
-| `wrapper/p3/SKILL.md` | no | The local `p3` wrapper skill. It holds no workflow text. |
+| `wrapper/p3/SKILL.md` | no | The local `p3` wrapper skill for the Executor install. It holds no workflow text. |
+| `local/` | no | What turns `app/skills/` into the on-disk install: `overlay.md`, the text that differs, and `p3/`, its entry skill. |
 | `UPSTREAM.json` | no | The pinned pstack commit, and the path map and name rewrites the sync script uses. |
 | `test/` | no | Behavioral tests that run the real app module through the `apps` framework handler on SQLite. |
-| `scripts/` | no | Bundle audit, deploy payload, upstream sync, and the child-brief walkthrough (`child-briefs.ts`). |
+| `scripts/` | no | Bundle audit, deploy payload, upstream sync, the child-brief walkthrough (`child-briefs.ts`), and the on-disk installer (`install-local.ts`, `local-target.ts`). |
 | `docs/` | no | Maintenance steps and the model-configuration reference. |
 | `.dev/` | no | Ignored scratch, such as the upstream checkout and deploy chunks. |
 
