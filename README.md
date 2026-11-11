@@ -100,7 +100,15 @@ The agent reads `p3-mode` from Executor and runs the `setup-p3` skill. It lists 
 
 The default install above keeps every skill and your model choices in the Executor app. You can instead install p3 as plain skill directories, in your home directory or in one project. This install is separate from Executor: it reads skills from disk, saves model choices in a file on your machine, and never calls the app. The trade-off is that an update is a reinstall on each machine instead of one redeploy, and model choices are per machine.
 
-The installer needs only Node.js 24.14.0 or newer and a clone of this repository. It needs no `pnpm install`.
+The quickest way needs only Node.js 24 or newer, `curl` and `tar`. It downloads this repository to a temporary directory, installs from it, and removes the download:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/osmelmora/p3-executor/main/install.sh | sh
+```
+
+Pass installer options after `sh -s --`, for example `| sh -s -- --standalone`. Run the same command again to update. Set `P3_REF` to a branch, tag or commit to install that version instead of `main`.
+
+From a clone of this repository, run the installer directly. It needs no `pnpm install`.
 
 ```sh
 node scripts/install-local.ts                    # every skill, into ~/.claude/skills and ~/.agents/skills
