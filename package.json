@@ -8,6 +8,7 @@
     "typecheck": "tsc -p tsconfig.json",
     "typecheck:app": "tsc --ignoreConfig --noEmit --strict --skipLibCheck --module nodenext --moduleResolution nodenext --target es2022 app/index.ts",
     "test": "node --import tsx --test test/*.test.ts",
+    "install:local": "node scripts/install-local.ts",
     "check:bundle": "node --import tsx scripts/check-bundle.ts",
     "verify": "pnpm typecheck:app && pnpm typecheck && pnpm test && pnpm check:bundle"
   },

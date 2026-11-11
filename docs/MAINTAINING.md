@@ -13,7 +13,7 @@ node --import tsx scripts/sync-upstream.ts origin/main             # merge in pl
 node --import tsx scripts/sync-upstream.ts <commit> --record
 ```
 
-Paths are relative to `root` (`pstack/`). `pathMap` routes `skills/poteto-mode/` to `p3-mode`, `skills/poteto-help/` to `p3-help`, `skills/setup-pstack/` to `setup-p3`, `agents/poteto-agent.md` to the `p3-agent` skill, and `agents/comment-sicko.md` to `no-comments/references/comment-sicko.md`. `notShipped` skips upstream's plugin files, guide, `poteto-mode/scripts/` (replaced by T3 tools), and `statechart/scripts/test/`. The script reports files upstream removed and upstream files with no mapping; handle those by hand.
+Paths are relative to `root` (`pstack/`). `pathMap` routes `skills/poteto-mode/` to `p3-mode`, `skills/poteto-help/` to `p3-help`, `skills/setup-pstack/` to `setup-p3`, `agents/poteto-agent.md` to the `p3-agent` skill, and `agents/comment-sicko.md` to `no-comments/references/comment-sicko.md`. `notShipped` skips upstream's plugin files, guide, `poteto-mode/scripts/` (replaced by T3 tools), and from `statechart/scripts/` the tests and `tsconfig.json`, which only upstream's own typecheck reads. The `statechart` launcher ships: it is the one extensionless file besides `LICENSE`, listed in `extensionless` in `scripts/bundle.ts`, and it must stay executable in git so the on-disk install keeps its mode. The script reports files upstream removed and upstream files with no mapping; handle those by hand.
 
 Then audit every merged or added file. `pnpm test` fails on the mechanical cases, and the rest needs reading.
 
@@ -37,6 +37,15 @@ Run `node --import tsx scripts/child-briefs.ts` after every merge. A brief that 
 
 A new upstream role needs four edits: `roleKinds` in `app/lib/model-config.ts`, the setup groups in `skills/setup-p3/SKILL.md`, the role count in `test/model-config.test.ts`, and the role table in README.
 
+## Keep the on-disk install in step
+
+`app/skills/` is the only copy of the skill text. The on-disk install (README, Install the skills on disk instead) is rendered from it by `scripts/local-target.ts`, which applies the replacements in `local/overlay.md` and adds the entry skill in `local/p3/`. Nothing rendered is committed.
+
+- Write new skill text so it holds for both installs. Say "the **name** skill", "`models.resolve` (p3-mode's Model configuration)", and "the p3 Executor app". Avoid "this app", and keep how a skill or file is read inside p3-mode's Loading p3 skills section.
+- Text that must differ gets a block in `local/overlay.md`. A block's executor text must occur exactly once in its file. When a sync or an edit changes that text, the render throws and `test/local-target.test.ts` fails, naming the file. Update the block to match.
+- `test/local-target.test.ts` also fails when the rendered copy tells an agent to read from Executor, or mentions Executor in a file outside its allowlist. A new mention needs either neutral wording in the source or a new overlay block.
+- The standalone set is computed, not listed: a skill qualifies when its text matches none of `routerDependent` in `scripts/local-target.ts` and every skill it names in bold also qualifies. The test pins the count, so a change to it is a deliberate edit.
+
 ## Upgrade the `apps` framework
 
 Do this when Executor's `framework.release` (or `executor apps framework`) returns a version other than the pin.
@@ -54,7 +63,7 @@ Use this path when you have a shell in this repository but not the Executor CLI 
 
 1. In `execute`, discover the management app with `tools.search`, call `context.get({})` for the organization, and check that `framework.release` returns the pinned `apps` version, the same one as `appsVersion` in `manifest.json`. A different version means bumping it first (Upgrade the `apps` framework).
 2. Create the app from chunk 1: `appManagement.create({ path: { organization }, body: { name: "p3", files: <chunk-01> } })`. Chunk 1 holds `index.ts`, `package.json`, `lib/`, and `migrations/`.
-3. For each later chunk, one `execute`: read `appManagement.source`, then `appManagement.commit` with `expected: source.revision.commit` and the source files plus the chunk. A commit replaces the whole file list, so always include the files already saved. An entry with `append: true` is a later part of a file too large for one chunk (`statechart/scripts/tlc-to-chart.mjs`): append its `content` to the saved file at that path instead of adding a file.
+3. For each later chunk, one `execute`: read `appManagement.source`, then `appManagement.commit` with `expected: source.revision.commit` and the source files plus the chunk. A commit replaces the whole file list, so always include the files already saved. An entry with `append: true` is a later part of a file too large for one chunk: append its `content` to the saved file at that path instead of adding a file.
 4. Read the source once more and compare it with `manifest.json`: every path present, each `content.length` equal to its `chars`. Then `appManagement.deploy({ path: { organization, app }, body: { commit } })`.
 
 Deploying applies `migrations/0001_model_config.sql` and `migrations/0002_revision_clock.sql` in order.
@@ -62,7 +71,7 @@ Deploying applies `migrations/0001_model_config.sql` and `migrations/0002_revisi
 **Check the deployment** in a new `execute`, with no delegation:
 
 - `tools.p3.models.read({})` returns `configured: false` and 17 roles on a new app.
-- `skills({ app: "p3" })` lists 58 skills.
+- `skills({ app: "p3" })` lists 59 skills.
 - `skills({ app: "p3", name: "p3-mode" })` reads the router.
 
 ## Change stored configuration
@@ -77,4 +86,5 @@ Deploying applies `migrations/0001_model_config.sql` and `migrations/0002_revisi
 - `pnpm verify` is green.
 - `pnpm check:bundle --list` shows only `app/` source, skills, migrations, `LICENSE`, and `NOTICE.md`.
 - `NOTICE.md` names the pinned upstream commit, and `LICENSE` matches upstream.
+- `node scripts/install-local.ts --dir <an empty scratch directory>` installs 60 skills.
 - `wrapper/p3/SKILL.md` still parses as skill `p3` and reads `{app: "p3", name: "p3-mode"}`. Installing it is a copy into `~/.agents/skills/p3/` and `~/.claude/skills/p3/` (README, Install step 3).

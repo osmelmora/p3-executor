@@ -72,7 +72,7 @@ describe("deployable bundle", () => {
     };
     assert.equal(tested, pinned, "pnpm install has put the pinned apps in node_modules");
     assert.equal(manifest.appsVersion, tested, "the payload names the framework the tests ran on");
-    assert.equal(manifest.upstream.commit, "9b93e81fb2921b9263d9463c15bafeabfe3903aa");
+    assert.equal(manifest.upstream.commit, "5866df557357d005b3c0c9d3da0d9e739b4bdde3");
     assert.equal(manifest.files.length, expected.length);
   });
 });

@@ -31,7 +31,7 @@ describe("bundled skills", async () => {
 
   it("load through the framework's packaged-skill loader, one per skills/ directory", () => {
     assert.deepEqual([...names].sort(), [...skillDirs].sort());
-    assert.equal(catalog.length, 58);
+    assert.equal(catalog.length, 59);
     for (const required of ["p3-mode", "setup-p3", "p3-agent", "p3-help", "principle-prove-it-works"]) {
       assert.ok(names.has(required), `${required} is bundled`);
     }
@@ -198,7 +198,7 @@ describe("bundled skills", async () => {
   it("route every delegate wait through p3-mode's Waiting on delegates, never polling task_status or launching parallel waits", () => {
     assert.deepEqual(lines(/[Dd]rain(ed)? (?:it |them |results |the candidates |background work )?with `task_status`|`task_status` until|poll(?:ing)? (?:for|until) (?:every |each )?(?:worker|delegate|child|task)/), []);
     assert.deepEqual(lines(/completion wakes? \(p3-mode|when T3 wakes this thread for it/), [], "callers defer to the rule instead of restating the wake path");
-    assert.deepEqual(lines(/mode: "wait"/), ["p3-mode/SKILL.md:114"], "only the rule itself names mode: \"wait\"");
+    assert.deepEqual(lines(/mode: "wait"/), ["p3-mode/SKILL.md:115"], "only the rule itself names mode: \"wait\"");
     const mode = catalog.find((skill) => skill.name === "p3-mode")!.files.find((file) => file.path === "SKILL.md")!.content;
     for (const branch of ["**Stay in the turn**", "**Fall back to ending the turn**", "**End the turn**"]) assert.ok(mode.includes(branch), `rule has the ${branch} branch`);
     assert.match(mode, /Call `t3_thread_wait` on each `childThreadId` in turn/);
@@ -237,7 +237,7 @@ describe("bundled skills", async () => {
     assert.match(step6, /never omit `target` to run it on this conversation's model instead/);
     assert.match(step6, /is not a model choice\. Only the user's explicit approval of a named replacement lets that role run/);
     const trail = catalog.find((skill) => skill.name === "show-me-your-work")!.files.find((file) => file.path === "SKILL.md")!.content;
-    assert.match(trail, /on the `judgment and prose` role, resolved through this app's `models\.resolve`/);
+    assert.match(trail, /on the `judgment and prose` role, resolved through `models\.resolve`/);
   });
 
   it("refresh the catalog for each task, dispatch wave, and rejected target", () => {

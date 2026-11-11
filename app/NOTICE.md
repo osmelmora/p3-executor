@@ -2,7 +2,7 @@
 
 This app bundles an adapted copy of pstack, by way of p3-stack.
 
-- Source: [pstack](https://github.com/cursor/plugins/tree/main/pstack) by Lauren Tan ([poteto](https://x.com/poteto)) at cursor/plugins commit `9b93e81fb2921b9263d9463c15bafeabfe3903aa` (2026-10-22). The skills, principles, and language are hers.
+- Source: [pstack](https://github.com/cursor/plugins/tree/main/pstack) by Lauren Tan ([poteto](https://x.com/poteto)) at cursor/plugins commit `5866df557357d005b3c0c9d3da0d9e739b4bdde3` (2026-11-11). The skills, principles, and language are hers.
 - The T3 Code rewiring is Uzair Ansar's [p3-stack](https://github.com/uzairansaruzi/p3-stack) at commit `09909ebb5c0125e27fad3e57d96b81e832696d69` (2026-10-05, "skills: port pstack to T3 Code"), which ported pstack `4e5b1cf2cc`. Later pstack changes are merged here directly.
 - License: MIT. The upstream license is reproduced verbatim in `LICENSE`, and it covers the adapted skills in `skills/`.
 

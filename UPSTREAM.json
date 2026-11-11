@@ -1,9 +1,9 @@
 {
   "repository": "https://github.com/cursor/plugins",
   "root": "pstack/",
-  "commit": "9b93e81fb2921b9263d9463c15bafeabfe3903aa",
-  "commitDate": "2026-10-22T15:11:22-04:00",
-  "commitSubject": "Merge pull request #778 from rosskrasner/cursor/stable-plugin",
+  "commit": "5866df557357d005b3c0c9d3da0d9e739b4bdde3",
+  "commitDate": "2026-11-11T00:09:36-08:00",
+  "commitSubject": "Merge pull request #1212 from djiang-jq/djiang/eight-sleep-plugin",
   "license": "MIT",
   "copyright": [
     "Lauren Tan",
@@ -54,6 +54,7 @@
     "plugin.json",
     "README.md",
     ".gitignore",
-    "skills/statechart/scripts/test/"
+    "skills/statechart/scripts/test/",
+    "skills/statechart/scripts/tsconfig.json"
   ]
 }
